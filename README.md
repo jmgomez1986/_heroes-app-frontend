@@ -1,23 +1,29 @@
 ## Juan Matias Gomez Andersen
 
-# Mindata Challenge - Angular
-
 ## Instalar dependencias
+
 ```bash
 npm i
 ```
 
 ## Development server
+
 Para correr el servidor de desarrollo del frontend
+
 ```bash
 ng serve
 ```
+
 or
+
 ```bash
 npm run start
 ```
+
 ## Levantar Servidor mockeado con json-server
+
 Para correr el servidor de desarrollo del backtend
+
 ```bash
 npm run api
 ```
@@ -27,11 +33,13 @@ Una vez que el servidor esta en ejecucion, en el navegador usar `http://localhos
 ## Running unit tests
 
 Para los test unitarios, se usa Vitest
+
 ```bash
 ng test
 ```
 
 Para ejecutar los test y que se genere el reporte del coverage
+
 ```bash
 npm run test:coverage
 ```

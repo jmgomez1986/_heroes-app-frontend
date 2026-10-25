@@ -1,4 +1,4 @@
-# Correcciones post-evaluación — Mindata Challenge
+# Correcciones post-evaluación
 
 Backlog de mejoras derivado de la devolución del proceso de evaluación.
 

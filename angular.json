@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "mindata-challenge": {
+    "heroes-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -63,10 +63,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "mindata-challenge:build:production"
+              "buildTarget": "heroes-app:build:production"
             },
             "development": {
-              "buildTarget": "mindata-challenge:build:development"
+              "buildTarget": "heroes-app:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -9,5 +9,5 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('mindata-challenge');
+  protected readonly title = signal('heroes-app');
 }
