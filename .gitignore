@@ -39,7 +39,6 @@ yarn-error.log
 /.atl
 testem.log
 __screenshots__/
-package-lock.json
 
 # System files
 .DS_Store
