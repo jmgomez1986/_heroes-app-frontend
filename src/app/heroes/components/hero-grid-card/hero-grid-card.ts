@@ -16,14 +16,14 @@ import { MatChipsModule } from '@angular/material/chips';
 
 import { HeroV2 } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
+import { HeroImage } from '../../../components/hero-image/hero-image';
 import { MatIcon } from '@angular/material/icon';
 import { I18N } from '../../../shared/i18n/es';
-import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-hero-grid-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, NgOptimizedImage],
+  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, HeroImage],
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {

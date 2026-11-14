@@ -21,7 +21,7 @@ export class HeroesService {
     const aliasQuery = (query?.alias ?? '').trim().toLocaleLowerCase();
 
     // El filtrado por nombre/alias queda pendiente de contrato en el backend:
-    // por ahora los terminos solo se normalizan aca y no viajan como params.
+    // los terminos ya se normalizan aca y quedan pendientes de viajar como query params.
 
     const params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
 

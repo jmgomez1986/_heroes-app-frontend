@@ -2,17 +2,11 @@
   <mat-card-content class="p-0 flex-1">
     <!-- Image Container -->
     <div class="relative aspect-[3/4] w-full overflow-hidden">
-      @if (hero().image) {
-        <img
-          [ngSrc]="hero().image"
-          [alt]="`Imagen de ${hero().name}`"
-          [priority]="isPriorityImg()"
-          width="350"
-          height="500"
-          class="h-full w-full object-cover"
-          data-testid="img-normal"
-        />
-      }
+      <app-hero-image
+        [image]="hero().image"
+        [name]="hero().name"
+        [priority]="isPriorityImg()"
+      />
 
       <!-- Top Overlays -->
       <div class="absolute top-3 left-3 flex items-center gap-2">

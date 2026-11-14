@@ -1,0 +1,25 @@
+<div class="relative h-full w-full">
+  @if (showPlaceholder()) {
+    <img
+      [src]="placeholder"
+      [alt]="altText()"
+      class="h-full w-full object-cover"
+      data-testid="img-placeholder"
+    />
+  } @else {
+    <img
+      [ngSrc]="image()"
+      [alt]="altText()"
+      [priority]="priority()"
+      fill
+      class="object-cover"
+      (load)="imageState.set('loaded')"
+      (error)="imageState.set('error')"
+      data-testid="img-real"
+    />
+
+    @if (showSkeleton()) {
+      <div class="absolute inset-0 animate-pulse bg-gray-200" data-testid="img-skeleton"></div>
+    }
+  }
+</div>

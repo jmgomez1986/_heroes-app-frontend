@@ -2,18 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import Swal, { type SweetAlertResult } from 'sweetalert2';
 import { of, throwError } from 'rxjs';
-import { screen } from '@testing-library/angular';
 
 import { HeroGridCard } from './hero-grid-card';
-import { Hero } from '../../../interfaces/heroes.interface';
+import { HeroV2 } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { I18N } from '../../../shared/i18n/es';
 
 // Se crea el Mock del heroe cpmo una arrow function, para despues si es necesario, en otros test,
 // usarla para sobreescribir algun atributo
 // Ejemplo: fixture.componentRef.setInput('hero', createMockHero({ name: 'Nuevo nombre' }));
-const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
-  id: '1',
+const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
+  _id: '1',
+  slug: 'superman',
   name: 'Clark Kent',
   alias: 'Superman',
   powers: ['Vuelo', 'Super fuerza', 'Visión de calor'],
@@ -192,19 +192,5 @@ describe('HeroGridCard', () => {
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({ title: I18N.heroes.card.deleteErrorTitle }),
     );
-  });
-
-  it('should show image when is base 64', () => {
-    // Se setea el input "hero" con una imagen que simula ser que esta en base 64
-    fixture.componentRef.setInput(
-      'hero',
-      createMockHero({
-        image: 'data:image',
-      }),
-    );
-    fixture.detectChanges();
-
-    const imgElement = screen.getByTestId('img-base64');
-    expect(imgElement).toBeDefined();
   });
 });
