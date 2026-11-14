@@ -73,7 +73,7 @@ export class HeroGridCard {
   }
 
   editHero() {
-    this.router.navigate([`/edit-hero/${this.hero()._id}`]);
+    this.router.navigate([`/edit-hero/${this.hero().slug}`]);
   }
   viewHero() {
     this.router.navigate([`/view-hero/${this.hero().slug}`]);

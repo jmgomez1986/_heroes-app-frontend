@@ -30,7 +30,7 @@ const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
 // No se toca HTTP ni hace falta provideHttpClientTesting (patrón ya usado en el repo).
 const createHeroesServiceMock = () => ({
   getHeroes: vi.fn(),
-  getHeroById: vi.fn(),
+  getHeroBySlug: vi.fn(),
   addNewHero: vi.fn().mockReturnValue(of({ res: createMockHero() })),
   editHero: vi.fn().mockReturnValue(of(createMockHero())),
   deleteHero: vi.fn().mockReturnValue(of(createMockHero())),
@@ -129,7 +129,8 @@ describe('HeroGridCard', () => {
     // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.editHero();
-    expect(navigateSpy).toHaveBeenCalledWith(['/edit-hero/1']);
+    // La edición navega por slug (contrato real del backend), no por id
+    expect(navigateSpy).toHaveBeenCalledWith(['/edit-hero/superman']);
   });
 
   it('should call router.navigate with "/view-hero/" when viewHero is called', () => {

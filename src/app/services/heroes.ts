@@ -1,8 +1,15 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Filters, GetHeroesResponse, Hero, HeroV2, NewHeroResponse } from '../interfaces/heroes.interface';
+import {
+  Filters,
+  GetHeroesResponse,
+  Hero,
+  HeroV2,
+  NewHeroResponse,
+  UploadImageResponse,
+} from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
 @Injectable({
@@ -36,13 +43,20 @@ export class HeroesService {
   }
 
   // Grabar un nuevo heroe en la db
-  addNewHero(newHero: Hero): Observable<NewHeroResponse> {
+  addNewHero(newHero: HeroV2): Observable<NewHeroResponse> {
     return this.http.post<NewHeroResponse>(this.apiUrl, newHero);
   }
 
+  // Subir la imagen de un heroe por su slug: envia el archivo crudo como binario (max 1 MB en el backend)
+  uploadHeroImage(heroSlug: string, file: File): Observable<UploadImageResponse> {
+    return this.http.post<UploadImageResponse>(`${this.apiUrl}/${heroSlug}/image`, file, {
+      headers: new HttpHeaders({ 'Content-Type': file.type }),
+    });
+  }
+
   // Editar un heroe por un id dado
-  editHero(heroId: string, hero: Hero): Observable<Hero> {
-    return this.http.put<Hero>(`${this.apiUrl}/${heroId}`, hero);
+  editHero(heroSlug: string, hero: HeroV2): Observable<Hero> {
+    return this.http.put<Hero>(`${this.apiUrl}/${heroSlug}`, hero);
   }
 
   // Eliminar un heroe de la db por un id dado

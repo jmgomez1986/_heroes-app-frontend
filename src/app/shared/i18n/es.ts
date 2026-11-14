@@ -34,6 +34,9 @@ export const I18N = {
     saveErrorTitle: 'Error',
     saveErrorCreateText: 'No se pudo guardar el héroe. Intente nuevamente.',
     saveErrorEditText: 'No se pudo editar el héroe. Intente nuevamente.',
+    // El héroe ya quedó creado: solo falló la subida de la imagen (se puede reintentar desde Editar).
+    saveImageErrorCreateText:
+      'El héroe se creó correctamente, pero no se pudo subir la imagen. Intente nuevamente desde Editar.',
     confirmCreate: 'Crear',
     confirmEdit: 'Editar',
     cancel: 'Cancelar',

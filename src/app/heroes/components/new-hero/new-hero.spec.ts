@@ -16,8 +16,11 @@ vi.mock('sweetalert2', () => ({
   default: { fire: vi.fn() },
 }));
 
-// Imagen válida (dataURL) para cumplir el validador required del FormControl image.
-const DUMMY_IMAGE = 'data:image/png;base64,xxxx';
+// Nombre de archivo para el control image: satisface el validador required (el File viaja por signal).
+const DUMMY_FILE_NAME = 'superman.png';
+// URL de imagen existente tal como la devuelve el backend (secure_url de Cloudinary).
+const CLOUDINARY_IMAGE =
+  'https://res.cloudinary.com/matiasdev/image/upload/v1794609048/heroes-app/superman.jpg';
 
 // Héroe de prueba reutilizable. Con overrides se modifica algún atributo puntual.
 const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
@@ -28,7 +31,7 @@ const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
   powers: ['Vuelo', 'Super fuerza'],
   description: 'Descripción de prueba',
   team: 'Liga de la Justicia',
-  image: DUMMY_IMAGE,
+  image: CLOUDINARY_IMAGE,
   status: 'Active',
   category: 'Heroe',
   universe: 'DC',
@@ -39,8 +42,13 @@ const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
 // No se toca HTTP ni hace falta provideHttpClientTesting (patrón ya usado en el repo).
 const createHeroesServiceMock = () => ({
   getHeroes: vi.fn(),
-  getHeroById: vi.fn(),
-  addNewHero: vi.fn().mockReturnValue(of({ res: createMockHero() })),
+  getHeroBySlug: vi.fn(),
+  addNewHero: vi.fn().mockReturnValue(
+    of({ msg: 'Hero created correctly.', response: createMockHero() }),
+  ),
+  uploadHeroImage: vi.fn().mockReturnValue(
+    of({ msg: 'Image uploaded correctly.', response: createMockHero() }),
+  ),
   editHero: vi.fn().mockReturnValue(of(createMockHero())),
   deleteHero: vi.fn(),
 });
@@ -69,7 +77,7 @@ describe('NewHero', () => {
       team: 'Liga de la Justicia',
       description: 'Descripción de prueba',
       powers: ['Vuelo'],
-      image: DUMMY_IMAGE,
+      image: DUMMY_FILE_NAME,
       ...overrides,
     });
   };
@@ -111,14 +119,19 @@ describe('NewHero', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should set the image form control when the upload component emits a selection', () => {
-    component.onImageChanged({ fileName: 'superman.png', base64: 'data:image/png;base64,xxx' });
+  it('should set the image form control to the file name when the upload component emits a selection', () => {
+    const file = new File(['fake'], DUMMY_FILE_NAME, { type: 'image/png' });
 
-    expect(component.heroForm.get('image')?.value).toBe('data:image/png;base64,xxx');
+    component.onImageChanged({ fileName: DUMMY_FILE_NAME, file });
+
+    // El control lleva el nombre; el archivo real queda en el signal interno y viaja al subir.
+    expect(component.heroForm.get('image')?.value).toBe(DUMMY_FILE_NAME);
   });
 
   it('should clear the image form control when the selection is reseted', () => {
-    component.onImageChanged({ fileName: null, base64: null });
+    const file = new File(['fake'], DUMMY_FILE_NAME, { type: 'image/png' });
+    component.onImageChanged({ fileName: DUMMY_FILE_NAME, file });
+    component.onImageChanged({ fileName: null, file: null });
 
     expect(component.heroForm.get('image')?.value).toBe('');
   });
@@ -350,6 +363,8 @@ describe('NewHero', () => {
           alias: 'Superman',
           universe: 'DC',
           powers: ['Vuelo'],
+          // El JSON no lleva la imagen: se sube aparte con el slug de la respuesta.
+          image: '',
         }),
       );
       expect(heroesService.editHero).not.toHaveBeenCalled();
@@ -403,6 +418,70 @@ describe('NewHero', () => {
     });
   });
 
+  describe('subida de imagen en modo create', () => {
+    // Selecciona una imagen real por el canal público (onImageChanged) y devuelve el File.
+    const selectImage = () => {
+      const file = new File(['fake'], DUMMY_FILE_NAME, { type: 'image/png' });
+      component.onImageChanged({ fileName: DUMMY_FILE_NAME, file });
+      return file;
+    };
+
+    it('tras crear el héroe sube la imagen con el slug de la respuesta', async () => {
+      setMode('create');
+      fillValidForm();
+      selectImage();
+      mockSwalConfirmation(true);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(heroesService.uploadHeroImage).toHaveBeenCalledWith('superman', expect.any(File));
+      // Orden: primero se crea el héroe y después se sube la imagen.
+      const createOrder = heroesService.addNewHero.mock.invocationCallOrder[0];
+      const uploadOrder = heroesService.uploadHeroImage.mock.invocationCallOrder[0];
+      expect(uploadOrder).toBeGreaterThan(createOrder);
+      expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    });
+
+    it('no sube imagen cuando no se seleccionó ningún archivo', async () => {
+      setMode('create');
+      fillValidForm(); // el control lleva nombre, pero no hay File por signal
+      mockSwalConfirmation(true);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(heroesService.uploadHeroImage).not.toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({ title: I18N.form.saveSuccessTitle, icon: 'success' }),
+      );
+    });
+
+    it('si la subida de imagen falla avisa con warning y igual navega al listado', async () => {
+      setMode('create');
+      fillValidForm();
+      selectImage();
+      mockSwalConfirmation(true);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      heroesService.uploadHeroImage.mockReturnValue(
+        throwError(() => new Error('Cloudinary caído')),
+      );
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: I18N.form.saveImageErrorCreateText,
+          icon: 'warning',
+        }),
+      );
+      expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    });
+  });
+
   describe('modo edit', () => {
     it('onSubmit llama editHero con el id y los datos del formulario', async () => {
       setMode('edit');
@@ -416,7 +495,7 @@ describe('NewHero', () => {
       await flushMicrotasks();
 
       expect(heroesService.editHero).toHaveBeenCalledWith(
-        '1',
+        'superman',
         expect.objectContaining({ name: 'Clark Kent', alias: 'Superman' }),
       );
       expect(heroesService.addNewHero).not.toHaveBeenCalled();

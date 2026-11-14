@@ -55,6 +55,14 @@ export interface HeroesGridResourceParams {
   refreshKey: number;
 }
 
+// Respuesta real del backend al crear un héroe (POST /heroes)
 export interface NewHeroResponse {
-  res: Hero;
+  msg: string;
+  response: HeroV2;
+}
+
+// Respuesta real del backend al subir la imagen de un héroe (POST /heroes/:slug/image)
+export interface UploadImageResponse {
+  msg: string;
+  response: HeroV2;
 }

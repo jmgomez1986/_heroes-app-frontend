@@ -41,7 +41,7 @@ El frontend consume la API con URLs absolutas construidas sobre `environment.url
 | **Paginación delegada al backend** | `HeroesService.getHeroes(page, size, query)` pagina del lado del servidor con `page`/`elements_per_page` (parametros construidos con `HttpParams`, que es inmutable: cada `.set()` devuelve una instancia nueva) y consume el contrato `GetHeroesResponse` (`total_pages/current_page/elements_per_page/total_elements/data`). El filtrado por nombre/alias queda pendiente de definirse en el contrato del backend |
 | **El modo (`create`/`edit`/`view`) viaja en el `data` de la ruta** | Antes se leía de `router.currentNavigation()?.extras?.state`, que se pierde al recargar el navegador: refrescar `/view-hero/:id` dejaba el formulario editable (bug). Con el modo en la configuración de la ruta (`app.routes.ts`), sobrevive a la recarga. Editar y ver comparten `edit-hero-page` con el modo por signal input |
 | **UX de límite de caracteres (aviso antes de cortar)** | Sin atributo nativo `maxlength`: el input deja escribir hasta `maxLength + 1`; al llegar ahí `Validators.maxLength` marca el error y el `mat-error`/`mat-hint` avisan, y por encima de ese tope `HeroesUtilsService.enforceMaxLength` recorta el valor (y el control) preservando el cursor. Así el usuario recibe el aviso del validador antes del corte manual, en lugar de chocar contra un límite silencioso. Centralizado en `heroes-utils.ts` y usado por todos los campos acotados |
-| **Subida de imagen encapsulada en un componente** | `custom-upload-image` aísla toda la complejidad (selección de archivo, preview, emisión del base64) para no "ensuciar" el formulario de héroe, que ya es extenso. Las imágenes base64 (data URLs) se excluyen de `NgOptimizedImage` (la directiva no soporta data URLs); las estáticas sí la usan (`ngSrc`) |
+| **Subida de imagen encapsulada en un componente** | `custom-upload-image` aísla toda la complejidad (selección de archivo, preview, emisión del archivo crudo) para no "ensuciar" el formulario de héroe, que ya es extenso. El preview local se genera con `URL.createObjectURL` (revocado al reemplazarlo) en lugar de base64; las imágenes base64 (data URLs) se excluyen de `NgOptimizedImage` (la directiva no soporta data URLs); las estáticas sí la usan (`ngSrc`) |
 | **Suscripciones dentro de callbacks de SweetAlert2 con `takeUntilDestroyed`** | El diálogo es asíncrono: el componente puede destruirse entre la confirmación del diálogo y la respuesta HTTP. La suscripción se protege con `takeUntilDestroyed(DestroyRef)` para no operar sobre un contexto destruido |
 | **`HeroErrorStateMatcher` única en `shared/`** | Se detectó duplicada en dos componentes y se extrajo a `src/app/shared/error-state-matcher.ts` para reutilizarla |
 | **Refresco del grid con un contador (signal), no un booleano** | `HeroesUtilsService.refreshLoad()` incrementa un contador: dos refrescos en el mismo tick nunca se cancelan entre sí (con un booleano `false → true → false` el cambio de señal se pierde y el grid podría no recargar) |
@@ -60,7 +60,9 @@ La suite (Vitest + Testing Library) cubre entre otros:
 
 - **Formulario de héroe**: campos requeridos con sus `mat-error`, límites por campo (`name`/`alias`/`team` máx 20, `universe` máx 10, `description` máx 150), comportamiento de `enforceMaxLength` (recorte en `max + 1`, `mat-hint` solo al alcanzar el máximo), botón `Guardar` deshabilitado con formulario inválido, y no se llama al servicio sin confirmación.
 - **Modos create/edit/view**: en `create` llama a `addNewHero`, en `edit` a `editHero`; en `view` el formulario queda deshabilitado y sin botón `Guardar`; títulos por modo (`Ver Héroe` / `Editar Héroe`).
-- **Carga por resource**: `edit-hero-page` llama a `getHeroById`, distingue valor cargado de estado de error y muestra el mensaje de carga fallida.
+- **Carga por resource**: `edit-hero-page` llama a `getHeroBySlug`, distingue valor cargado de estado de error y muestra el mensaje de carga fallida.
+- **Alta con imagen separada**: el payload de `addNewHero` lleva `image: ''`; con archivo seleccionado se sube después con el `slug` de la respuesta (orden create→upload verificado); sin archivo no se sube nada; si la subida falla, aviso con `warning` y navegación al listado igualmente.
+- **Servicio HTTP** (`heroes.spec.ts`, nuevo): `addNewHero` (URL y body) y `uploadHeroImage` (URL, archivo crudo como body y `Content-Type` del archivo).
 - **Poderes (chips)**: agregar con trim, ignorar valor compuesto solo de espacios, eliminar actualiza signal y FormControl.
 - **Directiva `transform-text-uppercase`**: transformación a mayúsculas, posición del cursor restaurada tras editar en el medio, texto pegado, integración con el DOM real.
 - **Navegación**: `Cancelar` vuelve a `/heroes`; errores del servicio muestran diálogo de error sin romper la página.
@@ -77,7 +79,7 @@ src/
 │   ├── app.ts / app.html      # Shell de la aplicación
 │   ├── components/
 │   │   ├── filters/               # Filtros de búsqueda (nombre/alias) con debounce, Signal Outputs
-│   │   └── custom-upload-image/   # Subida de imagen encapsulada (selección, preview, base64)
+│   │   └── custom-upload-image/   # Subida de imagen encapsulada (selección, preview con object URL, emisión del archivo crudo)
 │   ├── heroes/
 │   │   └── components/
 │   │       ├── heroes-grid/           # Grilla paginada con resource() y rollback de página
@@ -90,7 +92,7 @@ src/
 │   │   ├── new-hero-page/         # Ruta de alta (mode: 'create')
 │   │   └── edit-hero-page/        # Ruta de edición/consulta (mode: 'edit' | 'view', resource por heroId)
 │   ├── services/
-│   │   ├── heroes.ts              # HeroesService: CRUD + búsqueda/paginación sobre la API
+│   │   ├── heroes.ts              # HeroesService: CRUD + paginación + subida de imagen sobre la API
 │   │   └── heroes-utils.ts        # HeroesUtilsService: refresh del grid (contador) y enforceMaxLength
 │   ├── interfaces/
 │   │   ├── heroes.interface.ts    # HeroV2/GetHeroesResponse (contrato real) + tipos legacy del mock pendientes de baja
@@ -115,11 +117,12 @@ public/
 
 La integración se hace servicio por servicio. El backend (`heroes-app-backend`, Express + MongoDB) expone un **contrato distinto** al del mock que la app viene absorbiendo:
 
-> **Progreso**: el listado paginado (`GET /heroes`) ya está integrado y consumiendo el backend real; el resto de los servicios sigue pendiente.
+> **Progreso**: integrados el listado paginado (`GET /heroes`), la consulta por slug (`GET /heroes/:slug`) y el **alta de héroes** (`POST /heroes` + subida de imagen a `POST /heroes/:slug/image`); el resto de los servicios (edición y borrado) sigue pendiente.
 
 | Tema | Mock actual | Backend real |
 |---|---|---|
 | Identificador | `id` | `slug` (regenerado al cambiar el alias: la URL vieja pasa a `404`) |
+| Alta | `POST` con la imagen en base64 dentro del JSON | Doble paso: `POST /heroes` con JSON (`image: ''`, límite del body 100KB) y, con el `slug` de la respuesta, `POST /heroes/:slug/image` con el archivo crudo (máx 1MB). Si la subida falla, el héroe ya quedó creado: se avisa y la imagen se puede reintentar desde Editar |
 | Edición | `PUT` con el objeto completo | `PATCH` con whitelist de campos (`name` inmutable) |
 | Paginación | `first/prev/next/last/pages/items/data` | `total_pages/current_page/elements_per_page/total_elements/data` con `page` y `elements_per_page` |
 | Búsqueda | Filtrada en memoria en el servicio | A definir en el contrato (`/api/heroes` paginado) |

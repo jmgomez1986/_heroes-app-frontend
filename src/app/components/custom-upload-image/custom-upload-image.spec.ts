@@ -45,7 +45,7 @@ describe('CustomUploadImage', () => {
     expect(component.imageNameControl.value).toBe('');
   });
 
-  it('should emit base64 and fileName after selecting a valid image', async () => {
+  it('should emit the file and fileName after selecting a valid image', () => {
     let selection: CustomUploadImageSelection | undefined;
     component.selectionChange.subscribe((s) => (selection = s));
 
@@ -55,14 +55,37 @@ describe('CustomUploadImage', () => {
 
     component.onFileSelect(event);
 
-    // FileReader es asíncrono, esperamos a que termine de leer el archivo
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
+    // No hay lectura asíncrona: el archivo viaja crudo y el preview es un object URL local.
     expect(selection?.fileName).toBe(fileName);
-    expect(selection?.base64).toContain('data:image/png;base64');
-    // El preview y el nombre se actualizan internamente
-    expect(component.imagePreview()).toContain('data:image/png;base64');
+    expect(selection?.file).toBe(file);
+    expect(component.imagePreview()).toMatch(/^blob:/);
     expect(component.imageFileName()).toBe(fileName);
+  });
+
+  it('revoca el object URL anterior al seleccionar otra imagen o reiniciar el estado', () => {
+    const createSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValueOnce('blob:uno')
+      .mockReturnValueOnce('blob:dos');
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    const selectFile = (name: string) => {
+      const file = new File(['data'], name, { type: 'image/png' });
+      component.onFileSelect({ target: { files: [file] } } as unknown as Event);
+    };
+
+    selectFile('uno.png');
+    selectFile('dos.png');
+    expect(revokeSpy).toHaveBeenCalledWith('blob:uno');
+
+    // Un archivo inválido reinicia el estado y revoca el último object URL
+    const invalid = new File(['data'], 'notas.txt', { type: 'text/plain' });
+    component.onFileSelect({ target: { files: [invalid] } } as unknown as Event);
+    expect(revokeSpy).toHaveBeenCalledWith('blob:dos');
+    expect(component.imagePreview()).toBeNull();
+
+    createSpy.mockRestore();
+    revokeSpy.mockRestore();
   });
 
   it('should reject non-image files, reset the state and emit nulls', () => {
@@ -76,7 +99,7 @@ describe('CustomUploadImage', () => {
     component.onFileSelect(event);
 
     expect(selection?.fileName).toBeNull();
-    expect(selection?.base64).toBeNull();
+    expect(selection?.file).toBeNull();
     expect(component.imagePreview()).toBeNull();
     expect(component.imageFileName()).toBeNull();
     expect(component.imageNameControl.hasError('invalidType')).toBe(true);
