@@ -13,7 +13,7 @@
       </div>
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 auto-rows-fr">
-        @for (hero of heroesResource.value()?.data; track hero.id) {
+        @for (hero of heroesResource.value()?.data; track hero._id) {
           <app-hero-grid-card
             [hero]="hero"
             (heroDeleted)="refreshHeroes()"
@@ -31,7 +31,7 @@
   <mat-paginator
     aria-label="Seleccionar página"
     [pageIndex]="currentPage() - 1"
-    [length]="heroesResource.value()?.items || 0"
+    [length]="heroesResource.value()?.total_elements"
     [pageSize]="itemsPerPage()"
     [pageSizeOptions]="[5, 10, 25, 100]"
     (page)="handlePageEvent($event)"

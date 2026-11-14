@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 
-import { Hero } from '../../../interfaces/heroes.interface';
+import { HeroV2 } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { MatIcon } from '@angular/material/icon';
 import { I18N } from '../../../shared/i18n/es';
@@ -27,7 +27,7 @@ import { NgOptimizedImage } from '@angular/common';
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {
-  hero = input.required<Hero>();
+  hero = input.required<HeroV2>();
   isPriorityImg = input<boolean>(false);
   heroDeleted = output<void>();
   // Services
@@ -48,7 +48,7 @@ export class HeroGridCard {
     }).then((result) => {
       if (result.isConfirmed) {
         this.heroesService
-          .deleteHero(this.hero().id)
+          .deleteHero(this.hero()._id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
@@ -73,13 +73,9 @@ export class HeroGridCard {
   }
 
   editHero() {
-    this.router.navigate([`/edit-hero/${this.hero().id}`]);
+    this.router.navigate([`/edit-hero/${this.hero()._id}`]);
   }
   viewHero() {
-    this.router.navigate([`/view-hero/${this.hero().id}`]);
-  }
-
-  isBase64(src: string): boolean {
-    return src.startsWith('data:image');
+    this.router.navigate([`/view-hero/${this.hero()._id}`]);
   }
 }

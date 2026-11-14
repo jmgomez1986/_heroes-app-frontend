@@ -2,19 +2,7 @@
   <mat-card-content class="p-0 flex-1">
     <!-- Image Container -->
     <div class="relative aspect-[3/4] w-full overflow-hidden">
-      <!-- Si la imagen está en Base64, usamos la etiqueta nativa estándar -->
-      @if (isBase64(hero().image)) {
-        <img
-          [src]="hero().image"
-          [alt]="`Imagen de ${hero().name}`"
-          width="350"
-          height="500"
-          class="h-full w-full object-cover"
-          data-testid="img-base64"
-        />
-      }
-      <!-- Si la imagen está en assets, aprovechamos NgOptimizedImage -->
-      @else {
+      @if (hero().image) {
         <img
           [ngSrc]="hero().image"
           [alt]="`Imagen de ${hero().name}`"

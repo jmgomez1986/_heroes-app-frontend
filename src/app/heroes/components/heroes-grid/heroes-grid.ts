@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, inject, resource, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  resource,
+  signal,
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { firstValueFrom } from 'rxjs';
@@ -10,10 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import {
-  HeroesGridResourceParams,
-  HeroesResponsePaginated,
-} from '../../../interfaces/heroes.interface';
+import { GetHeroesResponse, HeroesGridResourceParams } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { HeroGridCard } from '../hero-grid-card/hero-grid-card';
 import { HeroesUtilsService } from '../../../services/heroes-utils';
@@ -60,9 +64,9 @@ export class HeroesGrid {
       },
       refreshKey: this.heroesUtilsService.refreshHeroesGrid(),
     }),
-    loader: async ({ params }): Promise<HeroesResponsePaginated> => {
+    loader: async ({ params }): Promise<GetHeroesResponse> => {
       return await firstValueFrom(
-        this.heroesService.getHeroesPaginated(params.page, params.size, params.query),
+        this.heroesService.getHeroes(params.page, params.size, params.query),
       );
     },
   });
@@ -75,7 +79,7 @@ export class HeroesGrid {
     effect(() => {
       const resp = this.heroesResource.value();
       if (resp && resp.data.length === 0 && this.currentPage() > 1) {
-        this.currentPage.set(Math.max(1, resp.pages));
+        this.currentPage.set(Math.max(1, resp.total_pages));
       }
     });
   }
