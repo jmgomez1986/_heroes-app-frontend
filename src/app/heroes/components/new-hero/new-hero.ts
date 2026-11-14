@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 
 import { HeroesService } from '../../../services/heroes';
-import { Hero, NewHeroResponse } from '../../../interfaces/heroes.interface';
+import { Hero, HeroV2, NewHeroResponse } from '../../../interfaces/heroes.interface';
 import {
   CustomUploadImage,
   CustomUploadImageSelection,
@@ -64,7 +64,7 @@ interface HeroeCategory {
 export default class NewHero {
   matcher = new HeroErrorStateMatcher();
   // Signals
-  hero = input<Hero>();
+  hero = input<HeroV2>();
   mode = input<Mode>('create');
   // Services
   readonly heroesService = inject(HeroesService);
@@ -181,7 +181,7 @@ export default class NewHero {
         if (result.isConfirmed) {
           const newHero: Hero = { ...this.heroForm.value };
           newHero.powers = this.reactivePowersWords();
-          const heroId = this.hero()?.id ?? '';
+          const heroId = this.hero()?._id ?? '';
           const heroesServiceObservable$: Observable<NewHeroResponse | Hero> =
             this.mode() === 'create'
               ? this.heroesService.addNewHero(newHero)

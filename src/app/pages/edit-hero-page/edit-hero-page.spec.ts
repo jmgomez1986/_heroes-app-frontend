@@ -4,12 +4,13 @@ import { of, throwError } from 'rxjs';
 
 import EditHeroPage from './edit-hero-page';
 import { HeroesService } from '../../services/heroes';
-import { Hero } from '../../interfaces/heroes.interface';
+import { HeroV2 } from '../../interfaces/heroes.interface';
 import { Mode } from '../../interfaces/shared.interface';
 
 // Héroe de prueba reutilizable.
-const mockHero: Hero = {
-  id: '1',
+const mockHero: HeroV2 = {
+  _id: '1',
+  slug: 'superman',
   name: 'Clark Kent',
   alias: 'Superman',
   powers: ['Vuelo'],
@@ -23,7 +24,7 @@ const mockHero: Hero = {
 
 // Factory del servicio: cada método es un vi.fn() que emite al instante.
 const createHeroesServiceMock = () => ({
-  getHeroById: vi.fn().mockReturnValue(of(mockHero)),
+  getHeroBySlug: vi.fn().mockReturnValue(of(mockHero)),
 });
 
 describe('EditHeroPage', () => {
@@ -46,7 +47,7 @@ describe('EditHeroPage', () => {
 
     fixture = TestBed.createComponent(EditHeroPage);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('heroId', '1');
+    fixture.componentRef.setInput('heroSlug', 'superman');
     await fixture.whenStable();
   });
 
@@ -72,18 +73,18 @@ describe('EditHeroPage', () => {
     expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Editar Héroe');
   });
 
-  // El resource carga exitosamente y devuelve el héroe por su ID
+  // El resource carga exitosamente y devuelve el héroe por su slug
   it('resource carga y devuelve el héroe', async () => {
     await fixture.whenStable();
-    expect(heroesService.getHeroById).toHaveBeenCalledWith('1');
+    expect(heroesService.getHeroBySlug).toHaveBeenCalledWith('superman');
     expect(component.heroeResource.value()).toEqual(mockHero);
     expect(component.heroeResource.hasValue()).toBe(true);
   });
 
   // El resource muestra error y el template avisa cuando falla
   it('resource muestra error cuando el servicio falla', async () => {
-    heroesService.getHeroById.mockReturnValue(throwError(() => new Error('heroe no encontrado')));
-    fixture.componentRef.setInput('heroId', '2');
+    heroesService.getHeroBySlug.mockReturnValue(throwError(() => new Error('heroe no encontrado')));
+    fixture.componentRef.setInput('heroSlug', 'batman');
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(component.heroeResource.error()).toBeDefined();

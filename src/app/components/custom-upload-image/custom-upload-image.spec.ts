@@ -22,6 +22,29 @@ describe('CustomUploadImage', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the Cloudinary image as preview and only the file name in the input', async () => {
+    const cloudinaryUrl =
+      'https://res.cloudinary.com/matiasdev/image/upload/v1794609048/heroes-app/superman.jpg';
+
+    fixture.componentRef.setInput('heroImage', cloudinaryUrl);
+    await fixture.whenStable();
+
+    // La secure_url completa se usa tal cual como src del preview
+    expect(component.imagePreview()).toBe(cloudinaryUrl);
+    // El input muestra solo el último segmento del path
+    expect(component.imageFileName()).toBe('superman.jpg');
+    expect(component.imageNameControl.value).toBe('superman.jpg');
+  });
+
+  it('resets the preview and the input when the hero has no image', async () => {
+    fixture.componentRef.setInput('heroImage', '');
+    await fixture.whenStable();
+
+    expect(component.imagePreview()).toBeNull();
+    expect(component.imageFileName()).toBeNull();
+    expect(component.imageNameControl.value).toBe('');
+  });
+
   it('should emit base64 and fileName after selecting a valid image', async () => {
     let selection: CustomUploadImageSelection | undefined;
     component.selectionChange.subscribe((s) => (selection = s));

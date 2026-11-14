@@ -21,7 +21,7 @@ export const routes: Routes = [
         data: { mode: 'edit' },
       },
       {
-        path: 'view-hero/:heroId',
+        path: 'view-hero/:heroSlug',
         loadComponent: () => import('./pages/edit-hero-page/edit-hero-page'),
         data: { mode: 'view' },
       },

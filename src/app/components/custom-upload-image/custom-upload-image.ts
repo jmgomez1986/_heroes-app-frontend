@@ -46,12 +46,15 @@ export class CustomUploadImage {
   constructor() {
     effect(() => {
       const image = this.heroImage();
+      // Imagen existente del backend: secure_url completa de Cloudinary o vacia.
+      // La URL va tal cual al preview; el input muestra solo el nombre del archivo.
+      // El effect depende unicamente de heroImage: no lee las senales que escribe,
+      // para no pisar el estado de una seleccion de archivo en curso.
       if (image) {
-        const isBase64 = image.startsWith('data:');
-        // base64 → se usa tal cual; nombre de archivo → se busca en public/images
-        this.imagePreview.set(isBase64 ? image : `images/${image}`);
-        this.imageFileName.set(isBase64 ? 'Imagen existente' : image);
-        this.imageNameControl.setValue(this.imageFileName() ?? '');
+        const fileName = decodeURIComponent(image.split('/').pop() ?? 'Imagen existente');
+        this.imagePreview.set(image);
+        this.imageFileName.set(fileName);
+        this.imageNameControl.setValue(fileName);
       } else {
         this.imagePreview.set(null);
         this.imageFileName.set(null);

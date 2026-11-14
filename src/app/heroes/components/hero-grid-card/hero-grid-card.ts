@@ -76,6 +76,6 @@ export class HeroGridCard {
     this.router.navigate([`/edit-hero/${this.hero()._id}`]);
   }
   viewHero() {
-    this.router.navigate([`/view-hero/${this.hero()._id}`]);
+    this.router.navigate([`/view-hero/${this.hero().slug}`]);
   }
 }

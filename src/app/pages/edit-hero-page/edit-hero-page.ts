@@ -11,7 +11,7 @@ import { Mode } from '../../interfaces/shared.interface';
   templateUrl: './edit-hero-page.html',
 })
 export default class EditHeroPage {
-  heroId = input.required<string>();
+  heroSlug = input.required<string>();
   /** El modo ('edit' | 'view') es enlazado por el router (withComponentInputBinding)
    * desde el data de la ruta. */
   mode = input<Mode>('edit');
@@ -19,11 +19,11 @@ export default class EditHeroPage {
   readonly heroesService = inject(HeroesService);
 
   heroeResource = resource({
-    params: (): { heroId: string } => ({
-      heroId: this.heroId(),
+    params: (): { heroSlug: string } => ({
+      heroSlug: this.heroSlug(),
     }),
     loader: async () => {
-      return await firstValueFrom(this.heroesService.getHeroById(this.heroId()));
+      return await firstValueFrom(this.heroesService.getHeroBySlug(this.heroSlug()));
     },
   });
 }

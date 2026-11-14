@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Filters, GetHeroesResponse, Hero, NewHeroResponse } from '../interfaces/heroes.interface';
+import { Filters, GetHeroesResponse, Hero, HeroV2, NewHeroResponse } from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
 @Injectable({
@@ -30,9 +30,9 @@ export class HeroesService {
     return this.http.get<GetHeroesResponse>(url, { params });
   }
 
-  // Obtener un heroe por id
-  getHeroById(heroId: string): Observable<Hero> {
-    return this.http.get<Hero>(`${this.apiUrl}/${heroId}`);
+  // Obtener un heroe por slug
+  getHeroBySlug(heroSlug: string): Observable<HeroV2> {
+    return this.http.get<HeroV2>(`${environment.url}/api/heroes/${heroSlug}`);
   }
 
   // Grabar un nuevo heroe en la db

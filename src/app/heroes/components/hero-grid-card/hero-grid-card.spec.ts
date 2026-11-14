@@ -125,18 +125,18 @@ describe('HeroGridCard', () => {
     expect(chipTexts).not.toContain('Invisibilidad');
   });
 
-  it('should call router.navigate with "/edit-hero/" when navigateToNewHero is called', () => {
+  it('should call router.navigate with "/edit-hero/" when editHero is called', () => {
     // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.editHero();
     expect(navigateSpy).toHaveBeenCalledWith(['/edit-hero/1']);
   });
 
-  it('should call router.navigate with "/view-hero/" when navigateToNewHero is called', () => {
+  it('should call router.navigate with "/view-hero/" when viewHero is called', () => {
     // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.viewHero();
-    expect(navigateSpy).toHaveBeenCalledWith(['/view-hero/1']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/view-hero/superman']);
   });
 
   it('deleteHero muestra el diálogo de confirmación de Swal al guardar', async () => {
