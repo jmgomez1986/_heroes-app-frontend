@@ -4,11 +4,11 @@ import { of, throwError } from 'rxjs';
 
 import EditHeroPage from './edit-hero-page';
 import { HeroesService } from '../../services/heroes';
-import { HeroV2 } from '../../interfaces/heroes.interface';
+import { Hero } from '../../interfaces/heroes.interface';
 import { Mode } from '../../interfaces/shared.interface';
 
 // Héroe de prueba reutilizable.
-const mockHero: HeroV2 = {
+const mockHero: Hero = {
   _id: '1',
   slug: 'superman',
   name: 'Clark Kent',

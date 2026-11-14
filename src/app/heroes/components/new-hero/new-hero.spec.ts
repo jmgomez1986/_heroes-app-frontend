@@ -7,7 +7,7 @@ import { MatChipInputEvent } from '@angular/material/chips';
 
 import NewHero from './new-hero';
 import { HeroesService } from '../../../services/heroes';
-import { HeroV2 } from '../../../interfaces/heroes.interface';
+import { Hero } from '../../../interfaces/heroes.interface';
 import { Mode } from '../../../interfaces/shared.interface';
 import { I18N } from '../../../shared/i18n/es';
 
@@ -23,7 +23,7 @@ const CLOUDINARY_IMAGE =
   'https://res.cloudinary.com/matiasdev/image/upload/v1794609048/heroes-app/superman.jpg';
 
 // Héroe de prueba reutilizable. Con overrides se modifica algún atributo puntual.
-const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
+const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
   _id: '1',
   slug: 'superman',
   name: 'Clark Kent',
@@ -66,7 +66,7 @@ describe('NewHero', () => {
   let heroesService!: ReturnType<typeof createHeroesServiceMock>;
 
   const setMode = (mode: Mode) => fixture.componentRef.setInput('mode', mode);
-  const setHero = (hero: HeroV2) => fixture.componentRef.setInput('hero', hero);
+  const setHero = (hero: Hero) => fixture.componentRef.setInput('hero', hero);
 
   // Completa todos los campos obligatorios para que el formulario quede válido.
   const fillValidForm = (overrides: Record<string, unknown> = {}) => {

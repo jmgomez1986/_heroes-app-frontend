@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 
-import { HeroV2 } from '../../../interfaces/heroes.interface';
+import { Hero } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { HeroImage } from '../../../components/hero-image/hero-image';
 import { MatIcon } from '@angular/material/icon';
@@ -27,7 +27,7 @@ import { I18N } from '../../../shared/i18n/es';
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {
-  hero = input.required<HeroV2>();
+  hero = input.required<Hero>();
   isPriorityImg = input<boolean>(false);
   heroDeleted = output<void>();
   // Services
@@ -48,7 +48,7 @@ export class HeroGridCard {
     }).then((result) => {
       if (result.isConfirmed) {
         this.heroesService
-          .deleteHero(this.hero()._id)
+          .deleteHero(this.hero().slug)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {

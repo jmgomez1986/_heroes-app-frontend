@@ -54,16 +54,15 @@ El frontend consume la API con URLs absolutas construidas sobre `environment.url
 
 ## Edge cases cubiertos con tests
 
-> **Nota**: la suite se está reconstruyendo por integración. Los tests del contrato del mock (búsqueda en memoria, contrato paginado V1, grilla sobre `getHeroesPaginated`) se eliminaron junto al mock; los de cada servicio se reescriben a medida que se integra (los del GET paginado, a continuación).
-
-La suite (Vitest + Testing Library) cubre entre otros:
+La suite (Vitest + Testing Library) cubre el contrato real del backend entre otros:
 
 - **Formulario de héroe**: campos requeridos con sus `mat-error`, límites por campo (`name`/`alias`/`team` máx 20, `universe` máx 10, `description` máx 150), comportamiento de `enforceMaxLength` (recorte en `max + 1`, `mat-hint` solo al alcanzar el máximo), botón `Guardar` deshabilitado con formulario inválido, y no se llama al servicio sin confirmación.
 - **Modos create/edit/view**: en `create` llama a `addNewHero`, en `edit` a `editHero`; en `view` el formulario queda deshabilitado y sin botón `Guardar`; títulos por modo (`Ver Héroe` / `Editar Héroe`).
 - **Carga por resource**: `edit-hero-page` llama a `getHeroBySlug`, distingue valor cargado de estado de error y muestra el mensaje de carga fallida.
 - **Alta con imagen separada**: el payload de `addNewHero` lleva `image: ''`; con archivo seleccionado se sube después con el `slug` de la respuesta (orden create→upload verificado); sin archivo no se sube nada; si la subida falla, aviso con `warning` y navegación al listado igualmente.
 - **Edición con imagen condicional**: el PATCH por slug no lleva `name` (control disabled en modo edit); con archivo nuevo se sube después con el slug del response (alias cambiado regenera el slug, orden edit→upload verificado); sin archivo nuevo no se sube nada; fallo de subida → aviso con `warning` (texto por modo) y navegación al listado igualmente.
-- **Servicio HTTP** (`heroes.spec.ts`): `addNewHero` (URL y body), `editHero` (PATCH por slug) y `uploadHeroImage` (URL, archivo crudo como body y `Content-Type` del archivo).
+- **Borrado por slug**: `deleteHero` viaja con el slug del héroe (ya no `_id`); la cancelación no llama al servicio, el éxito muestra el diálogo y emite `heroDeleted`, y el error muestra el diálogo de fallo.
+- **Servicio HTTP** (`heroes.spec.ts`): `getHeroBySlug` (GET por slug), `addNewHero` (URL y body), `editHero` (PATCH por slug), `deleteHero` (DELETE por slug) y `uploadHeroImage` (URL, archivo crudo como body y `Content-Type` del archivo).
 - **Poderes (chips)**: agregar con trim, ignorar valor compuesto solo de espacios, eliminar actualiza signal y FormControl.
 - **Directiva `transform-text-uppercase`**: transformación a mayúsculas, posición del cursor restaurada tras editar en el medio, texto pegado, integración con el DOM real.
 - **Navegación**: `Cancelar` vuelve a `/heroes`; errores del servicio muestran diálogo de error sin romper la página.
@@ -91,12 +90,12 @@ src/
 │   │   ├── home-page/             # Shell de navegación (router outlet de las páginas internas)
 │   │   ├── heroes-page/           # Listado: compone filtros + grilla
 │   │   ├── new-hero-page/         # Ruta de alta (mode: 'create')
-│   │   └── edit-hero-page/        # Ruta de edición/consulta (mode: 'edit' | 'view', resource por heroId)
+│   │   └── edit-hero-page/        # Ruta de edición/consulta (mode: 'edit' | 'view', resource por heroSlug)
 │   ├── services/
 │   │   ├── heroes.ts              # HeroesService: CRUD + paginación + subida de imagen sobre la API
 │   │   └── heroes-utils.ts        # HeroesUtilsService: refresh del grid (contador) y enforceMaxLength
 │   ├── interfaces/
-│   │   ├── heroes.interface.ts    # HeroV2/GetHeroesResponse (contrato real) + tipos legacy del mock pendientes de baja
+│   │   ├── heroes.interface.ts    # Hero + respuestas del contrato real (GetHeroesResponse, New/Edit/DeleteHeroResponse, UploadImageResponse)
 │   │   └── shared.interface.ts
 │   ├── directives/
 │   │   └── transform-text-uppercase.ts  # Input forzado a mayúsculas preservando el cursor
@@ -114,18 +113,19 @@ public/
     └── placeholder.svg        # Imagen de reserva (héroe sin imagen o URL rota)
 ```
 
-## Integración con el backend real
+## Contrato del backend consumido
 
-La integración se hace servicio por servicio. El backend (`heroes-app-backend`, Express + MongoDB) expone un **contrato distinto** al del mock que la app viene absorbiendo:
+El backend (`heroes-app-backend`, Express + MongoDB) es la única fuente de datos de la app. El contrato que consume el frontend:
 
-> **Progreso**: integrados el listado paginado (`GET /heroes`), la consulta por slug (`GET /heroes/:slug`), el **alta de héroes** (`POST /heroes` + subida de imagen a `POST /heroes/:slug/image`) y la **edición** (`PATCH /heroes/:slug` + re-subida de imagen solo con archivo nuevo); pendiente el borrado.
+> **Estado**: integración completa — listado paginado (`GET /heroes`), consulta por slug (`GET /heroes/:slug`), alta (`POST /heroes` + imagen), edición (`PATCH /heroes/:slug` + imagen condicional) y borrado (`DELETE /heroes/:slug`).
 
-| Tema | Mock actual | Backend real |
-|---|---|---|
-| Identificador | `id` | `slug` (regenerado al cambiar el alias: la URL vieja pasa a `404`) |
-| Alta | `POST` con la imagen en base64 dentro del JSON | Doble paso: `POST /heroes` con JSON (`image: ''`, límite del body 100KB) y, con el `slug` de la respuesta, `POST /heroes/:slug/image` con el archivo crudo (máx 1MB). Si la subida falla, el héroe ya quedó creado: se avisa y la imagen se puede reintentar desde Editar |
-| Edición | `PUT` con el objeto completo | `PATCH /heroes/:slug` con semántica parcial (whitelist del backend). `name` inmutable: queda read-only en el form y no viaja en el PATCH. `alias` editable regenera el slug (la URL vieja pasa a `404`); la imagen se re-sube solo si se eligió archivo nuevo, con el slug del response |
-| Paginación | `first/prev/next/last/pages/items/data` | `total_pages/current_page/elements_per_page/total_elements/data` con `page` y `elements_per_page` |
-| Búsqueda | Filtrada en memoria en el servicio | A definir en el contrato (`/api/heroes` paginado) |
-| Imagen | Base64 dentro del JSON del héroe | Endpoint separado `POST /heroes/:slug/image`, binario crudo (`Content-Type: image/png|jpeg`, máx 1MB), hosting en Cloudinary |
-| Errores | `400`/`404` genéricos | `400` con `errors[]` de validación, `409` por unicidad (alias/slug), `403` CORS |
+| Tema | Contrato |
+|---|---|
+| Identificador | `slug` único (regenerado al cambiar el alias: la URL vieja pasa a `404`) |
+| Listado | `GET /heroes` paginado con `page`/`elements_per_page`; responde `total_pages/current_page/elements_per_page/total_elements/data`. El filtrado por nombre/alias queda pendiente de definirse en el contrato |
+| Consulta | `GET /heroes/:slug`: 200 con el héroe directo (sin wrapper), 404 si no existe |
+| Alta | Doble paso: `POST /heroes` con JSON (`image: ''`, límite del body 100KB) y, con el `slug` de la respuesta, `POST /heroes/:slug/image` con el archivo crudo (máx 1MB). Si la subida falla, el héroe ya quedó creado: se avisa y la imagen se puede reintentar desde Editar |
+| Edición | `PATCH /heroes/:slug` con semántica parcial (whitelist del backend). `name` inmutable: queda read-only en el form y no viaja en el PATCH. `alias` editable regenera el slug (la URL vieja pasa a `404`); la imagen se re-sube solo si se eligió archivo nuevo, con el slug del response |
+| Borrado | `DELETE /heroes/:slug`: 200 con `{ msg }` (sin `response`); el grid se refresca vía `heroDeleted` |
+| Imagen | Endpoint separado `POST /heroes/:slug/image`, binario crudo (`Content-Type: image/png|jpeg`, máx 1MB), hosting en Cloudinary |
+| Errores | `400` con `errors[]` de validación, `409` por unicidad (alias/slug), `404` no encontrado, `403` CORS |

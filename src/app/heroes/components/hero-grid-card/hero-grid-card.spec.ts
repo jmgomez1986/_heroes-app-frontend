@@ -4,14 +4,14 @@ import Swal, { type SweetAlertResult } from 'sweetalert2';
 import { of, throwError } from 'rxjs';
 
 import { HeroGridCard } from './hero-grid-card';
-import { HeroV2 } from '../../../interfaces/heroes.interface';
+import { Hero } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { I18N } from '../../../shared/i18n/es';
 
 // Se crea el Mock del heroe cpmo una arrow function, para despues si es necesario, en otros test,
 // usarla para sobreescribir algun atributo
 // Ejemplo: fixture.componentRef.setInput('hero', createMockHero({ name: 'Nuevo nombre' }));
-const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
+const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
   _id: '1',
   slug: 'superman',
   name: 'Clark Kent',
@@ -33,7 +33,7 @@ const createHeroesServiceMock = () => ({
   getHeroBySlug: vi.fn(),
   addNewHero: vi.fn().mockReturnValue(of({ res: createMockHero() })),
   editHero: vi.fn().mockReturnValue(of(createMockHero())),
-  deleteHero: vi.fn().mockReturnValue(of(createMockHero())),
+  deleteHero: vi.fn().mockReturnValue(of({ msg: 'Hero deleted correctly.' })),
 });
 
 // Se mockea el módulo de sweetalert2 completo para poder espiar Swal.fire sin tocar el módulo real.
@@ -162,12 +162,12 @@ describe('HeroGridCard', () => {
     expect(heroesService.deleteHero).not.toHaveBeenCalled();
   });
 
-  it('deleteHero llama al servicio deleteHero con el id del héroe cuando Swal confirma', async () => {
+  it('deleteHero llama al servicio deleteHero con el slug del héroe cuando Swal confirma', async () => {
     mockSwalConfirmation(true);
     component.deleteHero();
     await flushMicrotasks();
 
-    expect(heroesService.deleteHero).toHaveBeenCalledWith('1');
+    expect(heroesService.deleteHero).toHaveBeenCalledWith('superman');
   });
 
   it('deleteHero muestra el mensaje de éxito y emite heroDeleted cuando la eliminación es exitosa', async () => {

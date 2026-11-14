@@ -4,8 +4,9 @@ import { TestBed } from '@angular/core/testing';
 
 import { HeroesService } from './heroes';
 import {
+  DeleteHeroResponse,
   EditHeroResponse,
-  HeroV2,
+  Hero,
   NewHeroResponse,
   UploadImageResponse,
 } from '../interfaces/heroes.interface';
@@ -15,7 +16,7 @@ describe('HeroesService', () => {
   let service: HeroesService;
   let httpMock: HttpTestingController;
 
-  const createMockHero = (overrides: Partial<HeroV2> = {}): HeroV2 => ({
+  const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
     _id: '1',
     slug: 'superman',
     name: 'Clark Kent',
@@ -57,8 +58,21 @@ describe('HeroesService', () => {
     expect(result).toEqual(mockResponse);
   });
 
+  it('getHeroBySlug hace GET a /heroes/:slug', () => {
+    const mockHero = createMockHero();
+    let result: Hero | undefined;
+
+    service.getHeroBySlug('superman').subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockHero);
+
+    expect(result).toEqual(mockHero);
+  });
+
   it('editHero hace PATCH a /heroes/:slug con los campos a editar', () => {
-    const edits: Partial<HeroV2> = { alias: 'Superman Prime', description: 'Nueva descripción' };
+    const edits: Partial<Hero> = { alias: 'Superman Prime', description: 'Nueva descripción' };
     const mockResponse: EditHeroResponse = {
       msg: 'Hero modified correctly',
       response: createMockHero(edits),
@@ -69,6 +83,19 @@ describe('HeroesService', () => {
 
     const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
     expect(req.request.method).toBe('PATCH');
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('deleteHero hace DELETE a /heroes/:slug', () => {
+    const mockResponse: DeleteHeroResponse = { msg: 'Hero deleted correctly.' };
+    let result: DeleteHeroResponse | undefined;
+
+    service.deleteHero('superman').subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
+    expect(req.request.method).toBe('DELETE');
     req.flush(mockResponse);
 
     expect(result).toEqual(mockResponse);

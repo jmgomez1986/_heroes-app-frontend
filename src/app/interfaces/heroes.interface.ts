@@ -3,7 +3,7 @@ export interface Filters {
   alias?: string;
 }
 
-export interface HeroV2 {
+export interface Hero {
   _id: string;
   name: string;
   alias: string;
@@ -17,37 +17,6 @@ export interface HeroV2 {
   universe: string;
 }
 
-export interface GetHeroesResponse {
-  total_pages: number;
-  current_page: number;
-  elements_per_page: number;
-  total_elements: number;
-  data: HeroV2[];
-}
-
-// Con Mock del backend
-export interface Hero {
-  id: string;
-  name: string;
-  alias: string;
-  powers: string[];
-  description: string;
-  team: string;
-  image: string;
-  status: string;
-  category: string;
-  universe: string;
-}
-export interface HeroesResponsePaginated {
-  first: number;
-  prev: number | null;
-  next: number | null;
-  last: number;
-  pages: number;
-  items: number;
-  data: Hero[];
-}
-
 export interface HeroesGridResourceParams {
   page: number;
   size: number;
@@ -55,20 +24,34 @@ export interface HeroesGridResourceParams {
   refreshKey: number;
 }
 
+// Respuesta real del backend al obtener el catalogo de heroes (GET /heroes)
+export interface GetHeroesResponse {
+  total_pages: number;
+  current_page: number;
+  elements_per_page: number;
+  total_elements: number;
+  data: Hero[];
+}
+
 // Respuesta real del backend al crear un héroe (POST /heroes)
 export interface NewHeroResponse {
   msg: string;
-  response: HeroV2;
+  response: Hero;
 }
 
 // Respuesta real del backend al editar un héroe (PATCH /heroes/:slug)
 export interface EditHeroResponse {
   msg: string;
-  response: HeroV2;
+  response: Hero;
 }
 
 // Respuesta real del backend al subir la imagen de un héroe (POST /heroes/:slug/image)
 export interface UploadImageResponse {
   msg: string;
-  response: HeroV2;
+  response: Hero;
+}
+
+// Respuesta real del backend al eliminar un héroe (DELETE /heroes/:slug)
+export interface DeleteHeroResponse {
+  msg: string;
 }

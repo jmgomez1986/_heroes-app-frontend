@@ -6,10 +6,10 @@ import {
   Filters,
   GetHeroesResponse,
   Hero,
-  HeroV2,
   EditHeroResponse,
   NewHeroResponse,
   UploadImageResponse,
+  DeleteHeroResponse,
 } from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
@@ -33,18 +33,16 @@ export class HeroesService {
 
     const params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
 
-    const url = `${environment.url}/api/heroes`;
-
-    return this.http.get<GetHeroesResponse>(url, { params });
+    return this.http.get<GetHeroesResponse>(this.apiUrl, { params });
   }
 
   // Obtener un heroe por slug
-  getHeroBySlug(heroSlug: string): Observable<HeroV2> {
-    return this.http.get<HeroV2>(`${environment.url}/api/heroes/${heroSlug}`);
+  getHeroBySlug(heroSlug: string): Observable<Hero> {
+    return this.http.get<Hero>(`${this.apiUrl}/${heroSlug}`);
   }
 
   // Grabar un nuevo heroe en la db
-  addNewHero(newHero: HeroV2): Observable<NewHeroResponse> {
+  addNewHero(newHero: Hero): Observable<NewHeroResponse> {
     return this.http.post<NewHeroResponse>(this.apiUrl, newHero);
   }
 
@@ -56,12 +54,12 @@ export class HeroesService {
   }
 
   // Editar un heroe por su slug: PATCH con semantica parcial (el backend aplica solo los campos presentes)
-  editHero(heroSlug: string, hero: HeroV2): Observable<EditHeroResponse> {
+  editHero(heroSlug: string, hero: Hero): Observable<EditHeroResponse> {
     return this.http.patch<EditHeroResponse>(`${this.apiUrl}/${heroSlug}`, hero);
   }
 
-  // Eliminar un heroe de la db por un id dado
-  deleteHero(heroId: string): Observable<Hero> {
-    return this.http.delete<Hero>(`${this.apiUrl}/${heroId}`);
+  // Eliminar un heroe de la db por su slug
+  deleteHero(heroSlug: string): Observable<DeleteHeroResponse> {
+    return this.http.delete<DeleteHeroResponse>(`${this.apiUrl}/${heroSlug}`);
   }
 }

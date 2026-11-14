@@ -26,7 +26,7 @@ import { MatCardModule } from '@angular/material/card';
 import { HeroesService } from '../../../services/heroes';
 import {
   EditHeroResponse,
-  HeroV2,
+  Hero,
   NewHeroResponse,
   UploadImageResponse,
 } from '../../../interfaces/heroes.interface';
@@ -69,7 +69,7 @@ interface HeroeCategory {
 export default class NewHero {
   matcher = new HeroErrorStateMatcher();
   // Signals
-  hero = input<HeroV2>();
+  hero = input<Hero>();
   mode = input<Mode>('create');
   // Services
   readonly heroesService = inject(HeroesService);
@@ -192,7 +192,7 @@ export default class NewHero {
         cancelButtonText: I18N.form.cancel,
       }).then((result) => {
         if (result.isConfirmed) {
-          const newHero: HeroV2 = { ...this.heroForm.value };
+          const newHero: Hero = { ...this.heroForm.value };
           newHero.powers = this.reactivePowersWords();
           // La imagen no viaja en el JSON (el backend limita ese body a 100 KB): se sube aparte como binario.
           newHero.image = '';
@@ -201,7 +201,8 @@ export default class NewHero {
           const heroSlug = this.hero()?.slug ?? '';
           const heroesServiceObservable$: Observable<
             NewHeroResponse | EditHeroResponse | UploadImageResponse
-          > = this.mode() === 'create' ? this.createHero(newHero) : this.editHero(newHero, heroSlug);
+          > =
+            this.mode() === 'create' ? this.createHero(newHero) : this.editHero(newHero, heroSlug);
           heroesServiceObservable$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
               if (this.imageUploadFailed()) {
@@ -253,7 +254,7 @@ export default class NewHero {
    * de la respuesta. Si la subida falla, se marca el error y se continúa igual: el héroe
    * ya existe y la imagen se puede reintentar desde Editar.
    */
-  private createHero(newHero: HeroV2): Observable<NewHeroResponse | UploadImageResponse> {
+  private createHero(newHero: Hero): Observable<NewHeroResponse | UploadImageResponse> {
     return this.heroesService.addNewHero(newHero).pipe(
       switchMap((created) => {
         const file = this.selectedImageFile();
@@ -279,7 +280,7 @@ export default class NewHero {
    * reintentar desde Editar.
    */
   private editHero(
-    newHero: HeroV2,
+    newHero: Hero,
     heroSlug: string,
   ): Observable<EditHeroResponse | UploadImageResponse> {
     return this.heroesService.editHero(heroSlug, newHero).pipe(
