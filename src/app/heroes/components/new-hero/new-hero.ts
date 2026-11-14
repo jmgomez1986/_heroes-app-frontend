@@ -24,7 +24,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 
 import { HeroesService } from '../../../services/heroes';
-import { Hero, HeroV2, NewHeroResponse, UploadImageResponse } from '../../../interfaces/heroes.interface';
+import {
+  EditHeroResponse,
+  HeroV2,
+  NewHeroResponse,
+  UploadImageResponse,
+} from '../../../interfaces/heroes.interface';
 import {
   CustomUploadImage,
   CustomUploadImageSelection,
@@ -102,6 +107,10 @@ export default class NewHero {
         this.reactivePowersWords.set(heroData.powers);
         if (this.mode() === 'view') {
           this.heroForm.disable();
+        } else if (this.mode() === 'edit') {
+          // name es inmutable en el backend: queda read-only y no viaja en el PATCH
+          // (un control disabled no entra en el form.value).
+          this.heroForm.get('name')?.disable();
         }
       }
     });
@@ -190,18 +199,20 @@ export default class NewHero {
           this.imageUploadFailed.set(false);
 
           const heroSlug = this.hero()?.slug ?? '';
-          const heroesServiceObservable$: Observable<NewHeroResponse | UploadImageResponse | Hero> =
-            this.mode() === 'create'
-              ? this.createHero(newHero)
-              : this.heroesService.editHero(heroSlug, newHero);
+          const heroesServiceObservable$: Observable<
+            NewHeroResponse | EditHeroResponse | UploadImageResponse
+          > = this.mode() === 'create' ? this.createHero(newHero) : this.editHero(newHero, heroSlug);
           heroesServiceObservable$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
               if (this.imageUploadFailed()) {
-                // El héroe ya quedó creado: solo falló la imagen, que se puede reintentar desde Editar.
-                // Igual se vuelve al listado.
+                // El héroe ya quedó creado/editado: solo falló la imagen, que se puede
+                // reintentar desde Editar. Igual se vuelve al listado.
                 Swal.fire({
                   title: I18N.form.saveErrorTitle,
-                  text: I18N.form.saveImageErrorCreateText,
+                  text:
+                    this.mode() === 'create'
+                      ? I18N.form.saveImageErrorCreateText
+                      : I18N.form.saveImageErrorEditText,
                   icon: 'warning',
                 });
               } else {
@@ -257,6 +268,34 @@ export default class NewHero {
           );
         }
         return of(created);
+      }),
+    );
+  }
+
+  /**
+   * Edita el héroe con PATCH por slug y, si el usuario eligió un archivo de imagen nuevo,
+   * lo sube aparte con el slug del response (editar el alias regenera el slug). Si la
+   * subida falla, se marca el error: el héroe ya quedó editado y la imagen se puede
+   * reintentar desde Editar.
+   */
+  private editHero(
+    newHero: HeroV2,
+    heroSlug: string,
+  ): Observable<EditHeroResponse | UploadImageResponse> {
+    return this.heroesService.editHero(heroSlug, newHero).pipe(
+      switchMap((edited) => {
+        const file = this.selectedImageFile();
+        const newSlug = edited.response.slug;
+
+        if (file && newSlug) {
+          return this.heroesService.uploadHeroImage(newSlug, file).pipe(
+            catchError(() => {
+              this.imageUploadFailed.set(true);
+              return of(edited);
+            }),
+          );
+        }
+        return of(edited);
       }),
     );
   }

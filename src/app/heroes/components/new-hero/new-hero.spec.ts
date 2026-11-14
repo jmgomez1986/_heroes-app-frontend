@@ -49,7 +49,9 @@ const createHeroesServiceMock = () => ({
   uploadHeroImage: vi.fn().mockReturnValue(
     of({ msg: 'Image uploaded correctly.', response: createMockHero() }),
   ),
-  editHero: vi.fn().mockReturnValue(of(createMockHero())),
+  editHero: vi.fn().mockReturnValue(
+    of({ msg: 'Hero modified correctly', response: createMockHero() }),
+  ),
   deleteHero: vi.fn(),
 });
 
@@ -483,7 +485,7 @@ describe('NewHero', () => {
   });
 
   describe('modo edit', () => {
-    it('onSubmit llama editHero con el id y los datos del formulario', async () => {
+    it('onSubmit llama editHero con el slug y los datos editables (sin name)', async () => {
       setMode('edit');
       setHero(createMockHero());
       fixture.detectChanges(); // el effect copia el héroe al formulario
@@ -494,13 +496,25 @@ describe('NewHero', () => {
       component.onSubmit();
       await flushMicrotasks();
 
-      expect(heroesService.editHero).toHaveBeenCalledWith(
-        'superman',
-        expect.objectContaining({ name: 'Clark Kent', alias: 'Superman' }),
-      );
+      const [calledSlug, payload] = vi.mocked(heroesService.editHero).mock.calls[0];
+      expect(calledSlug).toBe('superman');
+      // name es inmutable y su control va disabled: no viaja en el PATCH
+      expect(payload?.name).toBeUndefined();
+      expect(payload).toEqual(expect.objectContaining({ alias: 'Superman' }));
       expect(heroesService.addNewHero).not.toHaveBeenCalled();
+      expect(heroesService.uploadHeroImage).not.toHaveBeenCalled();
       expect(refreshSpy).toHaveBeenCalledTimes(1);
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    });
+
+    it('deshabilita el campo name (inmutable) y deja editables el resto', () => {
+      setMode('edit');
+      setHero(createMockHero());
+      fixture.detectChanges();
+
+      expect(component.heroForm.get('name')?.disabled).toBe(true);
+      expect(component.heroForm.get('alias')?.disabled).toBe(false);
+      expect(component.heroForm.disabled).toBe(false);
     });
 
     it('onSubmit muestra el diálogo de confirmación de Swal al guardar en modo edit', async () => {
@@ -534,6 +548,83 @@ describe('NewHero', () => {
         expect.objectContaining({ title: I18N.form.saveSuccessTitle }),
       );
       expect(refreshSpy).toHaveBeenCalledTimes(1);
+      expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    });
+  });
+
+  describe('subida de imagen en modo edit', () => {
+    const selectImage = () => {
+      const file = new File(['fake'], DUMMY_FILE_NAME, { type: 'image/png' });
+      component.onImageChanged({ fileName: DUMMY_FILE_NAME, file });
+      return file;
+    };
+
+    it('tras editar sube la imagen nueva con el slug del response (alias cambiado regenera el slug)', async () => {
+      setMode('edit');
+      setHero(createMockHero());
+      fixture.detectChanges();
+      selectImage();
+      mockSwalConfirmation(true);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      // Editar el alias regenera el slug: la respuesta del PATCH trae el slug nuevo
+      heroesService.editHero.mockReturnValue(
+        of({
+          msg: 'Hero modified correctly',
+          response: createMockHero({ alias: 'Superman Prime', slug: 'superman-prime' }),
+        }),
+      );
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(heroesService.editHero).toHaveBeenCalled();
+      expect(heroesService.uploadHeroImage).toHaveBeenCalledWith(
+        'superman-prime',
+        expect.any(File),
+      );
+      // Orden: primero el PATCH de datos y después la subida de imagen
+      const editOrder = heroesService.editHero.mock.invocationCallOrder[0];
+      const uploadOrder = heroesService.uploadHeroImage.mock.invocationCallOrder[0];
+      expect(uploadOrder).toBeGreaterThan(editOrder);
+      expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    });
+
+    it('no sube imagen si el usuario dejó la imagen existente de Cloudinary', async () => {
+      setMode('edit');
+      setHero(createMockHero());
+      fixture.detectChanges();
+      mockSwalConfirmation(true);
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(heroesService.uploadHeroImage).not.toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({ title: I18N.form.saveSuccessTitle, icon: 'success' }),
+      );
+    });
+
+    it('si la subida de imagen falla avisa con warning (texto de edit) y igual navega', async () => {
+      setMode('edit');
+      setHero(createMockHero());
+      fixture.detectChanges();
+      selectImage();
+      mockSwalConfirmation(true);
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      heroesService.uploadHeroImage.mockReturnValue(
+        throwError(() => new Error('Cloudinary caído')),
+      );
+
+      component.onSubmit();
+      await flushMicrotasks();
+
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: I18N.form.saveImageErrorEditText,
+          icon: 'warning',
+        }),
+      );
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
     });
   });

@@ -37,6 +37,9 @@ export const I18N = {
     // El héroe ya quedó creado: solo falló la subida de la imagen (se puede reintentar desde Editar).
     saveImageErrorCreateText:
       'El héroe se creó correctamente, pero no se pudo subir la imagen. Intente nuevamente desde Editar.',
+    // El héroe ya quedó editado: solo falló la subida de la imagen (se puede reintentar desde Editar).
+    saveImageErrorEditText:
+      'El héroe se editó correctamente, pero no se pudo subir la imagen. Intente nuevamente desde Editar.',
     confirmCreate: 'Crear',
     confirmEdit: 'Editar',
     cancel: 'Cancelar',

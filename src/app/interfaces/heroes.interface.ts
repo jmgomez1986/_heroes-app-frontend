@@ -61,6 +61,12 @@ export interface NewHeroResponse {
   response: HeroV2;
 }
 
+// Respuesta real del backend al editar un héroe (PATCH /heroes/:slug)
+export interface EditHeroResponse {
+  msg: string;
+  response: HeroV2;
+}
+
 // Respuesta real del backend al subir la imagen de un héroe (POST /heroes/:slug/image)
 export interface UploadImageResponse {
   msg: string;

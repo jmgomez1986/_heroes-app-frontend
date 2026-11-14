@@ -3,7 +3,12 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { HeroesService } from './heroes';
-import { HeroV2, NewHeroResponse, UploadImageResponse } from '../interfaces/heroes.interface';
+import {
+  EditHeroResponse,
+  HeroV2,
+  NewHeroResponse,
+  UploadImageResponse,
+} from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
 describe('HeroesService', () => {
@@ -47,6 +52,23 @@ describe('HeroesService', () => {
     const req = httpMock.expectOne(`${environment.url}/api/heroes`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(mockHero);
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('editHero hace PATCH a /heroes/:slug con los campos a editar', () => {
+    const edits: Partial<HeroV2> = { alias: 'Superman Prime', description: 'Nueva descripción' };
+    const mockResponse: EditHeroResponse = {
+      msg: 'Hero modified correctly',
+      response: createMockHero(edits),
+    };
+    let result: EditHeroResponse | undefined;
+
+    service.editHero('superman', { ...createMockHero(), ...edits }).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
+    expect(req.request.method).toBe('PATCH');
     req.flush(mockResponse);
 
     expect(result).toEqual(mockResponse);

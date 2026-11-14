@@ -7,6 +7,7 @@ import {
   GetHeroesResponse,
   Hero,
   HeroV2,
+  EditHeroResponse,
   NewHeroResponse,
   UploadImageResponse,
 } from '../interfaces/heroes.interface';
@@ -54,9 +55,9 @@ export class HeroesService {
     });
   }
 
-  // Editar un heroe por un id dado
-  editHero(heroSlug: string, hero: HeroV2): Observable<Hero> {
-    return this.http.put<Hero>(`${this.apiUrl}/${heroSlug}`, hero);
+  // Editar un heroe por su slug: PATCH con semantica parcial (el backend aplica solo los campos presentes)
+  editHero(heroSlug: string, hero: HeroV2): Observable<EditHeroResponse> {
+    return this.http.patch<EditHeroResponse>(`${this.apiUrl}/${heroSlug}`, hero);
   }
 
   // Eliminar un heroe de la db por un id dado
