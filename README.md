@@ -38,7 +38,8 @@ El frontend consume la API con URLs absolutas construidas sobre `environment.url
 
 | Decisión | Motivo |
 |---|---|
-| **Paginación delegada al backend** | `HeroesService.getHeroes(page, size, query)` pagina del lado del servidor con `page`/`elements_per_page` (parametros construidos con `HttpParams`, que es inmutable: cada `.set()` devuelve una instancia nueva) y consume el contrato `GetHeroesResponse` (`total_pages/current_page/elements_per_page/total_elements/data`). El filtrado por nombre/alias queda pendiente de definirse en el contrato del backend |
+| **Paginación delegada al backend** | `HeroesService.getHeroes(page, size, query)` pagina del lado del servidor con `page`/`elements_per_page` (parametros construidos con `HttpParams`, que es inmutable: cada `.set()` devuelve una instancia nueva) y consume el contrato `GetHeroesResponse` (`total_pages/current_page/elements_per_page/total_elements/data`). El filtrado por nombre/alias viaja como query params (`name`/`alias`, solo si tienen valor); la coincidencia parcial case-insensitive queda a confirmar en el contrato del backend |
+| **Filtros y paginación con estado en la URL** | La URL es la única fuente de verdad de la vista (`heroes-grid`): los query params (`name`, `alias`, `page`, `elements_per_page`) llegan como signal vía `toSignal(queryParamMap)` y alimentan el objeto único `filters` (una *vista* de la URL, no estado duplicado). Aplicar un filtro o paginar escribe la URL con `router.navigate` (`merge` + `replaceUrl: true`: el debounce y la paginación no ensucian el historial). Así compartir el link, recargar el navegador y el botón atrás reproducen exactamente la vista. Los valores vacíos y los defaults (`page=1`, `size=10`) no viajan; `page`/`size` se sanitizan contra los límites del backend (`shared/pagination.constants.ts`). Agregar un filtro futuro = campo en `Filters` + línea en el mapper del servicio + el param del backend |
 | **El modo (`create`/`edit`/`view`) viaja en el `data` de la ruta** | Antes se leía de `router.currentNavigation()?.extras?.state`, que se pierde al recargar el navegador: refrescar `/view-hero/:id` dejaba el formulario editable (bug). Con el modo en la configuración de la ruta (`app.routes.ts`), sobrevive a la recarga. Editar y ver comparten `edit-hero-page` con el modo por signal input |
 | **UX de límite de caracteres (aviso antes de cortar)** | Sin atributo nativo `maxlength`: el input deja escribir hasta `maxLength + 1`; al llegar ahí `Validators.maxLength` marca el error y el `mat-error`/`mat-hint` avisan, y por encima de ese tope `HeroesUtilsService.enforceMaxLength` recorta el valor (y el control) preservando el cursor. Así el usuario recibe el aviso del validador antes del corte manual, en lugar de chocar contra un límite silencioso. Centralizado en `heroes-utils.ts` y usado por todos los campos acotados |
 | **Subida de imagen encapsulada en un componente** | `custom-upload-image` aísla toda la complejidad (selección de archivo, preview, emisión del archivo crudo) para no "ensuciar" el formulario de héroe, que ya es extenso. El preview local se genera con `URL.createObjectURL` (revocado al reemplazarlo) en lugar de base64; las imágenes base64 (data URLs) se excluyen de `NgOptimizedImage` (la directiva no soporta data URLs); las estáticas sí la usan (`ngSrc`) |
@@ -61,8 +62,10 @@ La suite (Vitest + Testing Library) cubre el contrato real del backend entre otr
 - **Carga por resource**: `edit-hero-page` llama a `getHeroBySlug`, distingue valor cargado de estado de error y muestra el mensaje de carga fallida.
 - **Alta con imagen separada**: el payload de `addNewHero` lleva `image: ''`; con archivo seleccionado se sube después con el `slug` de la respuesta (orden create→upload verificado); sin archivo no se sube nada; si la subida falla, aviso con `warning` y navegación al listado igualmente.
 - **Edición con imagen condicional**: el PATCH por slug no lleva `name` (control disabled en modo edit); con archivo nuevo se sube después con el slug del response (alias cambiado regenera el slug, orden edit→upload verificado); sin archivo nuevo no se sube nada; fallo de subida → aviso con `warning` (texto por modo) y navegación al listado igualmente.
+- **Filtros y paginación con estado en la URL** (`heroes-grid.spec.ts`, nuevo): la consulta toma `page`/`elements_per_page`/filtros de los query params; valores inválidos en la URL caen a los defaults; `applyFilters` escribe la URL con el filtro (vacíos fuera, página reseteada); `handlePageEvent` escribe `page` y `elements_per_page` (defaults fuera); con data vacía en una página fuera de rango se vuelve a la última página con datos escribiendo la URL.
+- **Hidratación de filtros desde la URL** (`filters.spec.ts`): los controles se precargan con los filtros de la URL y se sincronizan al volver atrás/adelante, sin re-emitir (`emitEvent: false`, no hay loop URL → emit → URL).
 - **Borrado por slug**: `deleteHero` viaja con el slug del héroe (ya no `_id`); la cancelación no llama al servicio, el éxito muestra el diálogo y emite `heroDeleted`, y el error muestra el diálogo de fallo.
-- **Servicio HTTP** (`heroes.spec.ts`): `getHeroBySlug` (GET por slug), `addNewHero` (URL y body), `editHero` (PATCH por slug), `deleteHero` (DELETE por slug) y `uploadHeroImage` (URL, archivo crudo como body y `Content-Type` del archivo).
+- **Servicio HTTP** (`heroes.spec.ts`): `getHeroes` (paginación + filtros como query params, solo los que tienen valor), `getHeroBySlug` (GET por slug), `addNewHero` (URL y body), `editHero` (PATCH por slug), `deleteHero` (DELETE por slug) y `uploadHeroImage` (URL, archivo crudo como body y `Content-Type` del archivo).
 - **Poderes (chips)**: agregar con trim, ignorar valor compuesto solo de espacios, eliminar actualiza signal y FormControl.
 - **Directiva `transform-text-uppercase`**: transformación a mayúsculas, posición del cursor restaurada tras editar en el medio, texto pegado, integración con el DOM real.
 - **Navegación**: `Cancelar` vuelve a `/heroes`; errores del servicio muestran diálogo de error sin romper la página.
@@ -78,11 +81,11 @@ src/
 │   │   └── environment.ts     # url de la API (http://localhost:4000) y base de Cloudinary
 │   ├── app.ts / app.html      # Shell de la aplicación
 │   ├── components/
-│   │   ├── filters/               # Filtros de búsqueda (nombre/alias) con debounce, Signal Outputs
+│   │   ├── filters/               # Filtros de búsqueda (nombre/alias) con debounce, hidratación desde la URL y output único
 │   │   └── custom-upload-image/   # Subida de imagen encapsulada (selección, preview con object URL, emisión del archivo crudo)
 │   ├── heroes/
 │   │   └── components/
-│   │       ├── heroes-grid/           # Grilla paginada con resource() y rollback de página
+│   │       ├── heroes-grid/           # Grilla paginada: estado de la vista (filtros + paginación) vive en la URL
 │   │       ├── hero-grid-card/        # Card individual (consultar, editar, eliminar con confirmación)
 │   │       ├── new-hero/              # Formulario de alta (reactive forms + chips de poderes)
 │   │       └── edit-hero/             # Formulario de edición
@@ -92,7 +95,7 @@ src/
 │   │   ├── new-hero-page/         # Ruta de alta (mode: 'create')
 │   │   └── edit-hero-page/        # Ruta de edición/consulta (mode: 'edit' | 'view', resource por heroSlug)
 │   ├── services/
-│   │   ├── heroes.ts              # HeroesService: CRUD + paginación + subida de imagen sobre la API
+│   │   ├── heroes.ts              # HeroesService: CRUD + paginación/filtros + subida de imagen sobre la API
 │   │   └── heroes-utils.ts        # HeroesUtilsService: refresh del grid (contador) y enforceMaxLength
 │   ├── interfaces/
 │   │   ├── heroes.interface.ts    # Hero + respuestas del contrato real (GetHeroesResponse, New/Edit/DeleteHeroResponse, UploadImageResponse)
@@ -101,6 +104,7 @@ src/
 │   │   └── transform-text-uppercase.ts  # Input forzado a mayúsculas preservando el cursor
 │   └── shared/
 │       ├── error-state-matcher.ts       # HeroErrorStateMatcher (única, compartida)
+│       ├── pagination.constants.ts      # Defaults y límites de paginación (espejan la validación del backend)
 │       └── i18n/
 │           ├── es.ts                    # Textos centralizados (preparado para i18n)
 │           └── spanish-paginator-intl.ts # MatPaginatorIntl en español

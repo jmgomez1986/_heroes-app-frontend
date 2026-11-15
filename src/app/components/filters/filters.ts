@@ -2,8 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   inject,
-  OnInit,
+  input,
   output,
 } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs';
@@ -17,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { HeroErrorStateMatcher } from '../../shared/error-state-matcher';
 import { HeroesUtilsService } from '../../services/heroes-utils';
+import { Filters as FiltersQuery } from '../../interfaces/heroes.interface';
 
 @Component({
   selector: 'app-filters',
@@ -26,37 +28,43 @@ import { HeroesUtilsService } from '../../services/heroes-utils';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule,
     MatCardModule,
+    MatIconModule,
   ],
   templateUrl: './filters.html',
 })
-export class Filters implements OnInit {
+export class Filters {
   matcher = new HeroErrorStateMatcher();
   // Largo máximo de los filtros de texto.
   readonly FILTER_MAX_LENGTH = 20;
   // Inyeccion de la referencia de destruccion para la desubcripcion
   private destroyRef = inject(DestroyRef);
   private readonly heroesUtilsService = inject(HeroesUtilsService);
-  // FormControl para el filtrado por nombre. El debounce (en ngOnInit) evita
+  // FormControl para el filtrado por nombre. El debounce (en el constructor) evita
   // llamadas redundantes mientras se escribe; no hay mínimo de caracteres.
   readonly nameFilter = new FormControl('', [Validators.maxLength(this.FILTER_MAX_LENGTH)]);
   readonly aliasFilter = new FormControl('', [Validators.maxLength(this.FILTER_MAX_LENGTH)]);
 
-  // Emite hacia el padre el query ya normalizado (trim + >= 3 caracteres o vacio)
-  nameFilterApplied = output<string>();
-  aliasFilterApplied = output<string>();
+  /** Valores iniciales desde la URL: la grilla los pasa al montar y al volver atrás/adelante. */
+  initialFilters = input<FiltersQuery>({});
 
-  /**
-   * Limita la escritura de los inputs a maxLength + 1 caracteres. Al superar el máximo,
-   * el validador maxLength invalida el control y la búsqueda no se emite
-   * (ver HeroesUtilsService.enforceMaxLength).
-   */
-  onTextInput(event: Event, control: AbstractControl): void {
-    this.heroesUtilsService.enforceMaxLength(event, control, this.FILTER_MAX_LENGTH);
-  }
+  /** Emite el filtro aplicado ya normalizado (trim), como objeto parcial: { name } o { alias }. */
+  filtersChange = output<Partial<FiltersQuery>>();
 
-  ngOnInit(): void {
+  constructor() {
+    // Hidratación desde la URL con emitEvent: false: actualiza el control sin
+    // re-disparar valueChanges (no hay loop URL → setValue → emit → navigate).
+    // Si el valor ya coincide no se toca, para no pisar lo que el usuario está tipeando.
+    effect(() => {
+      const initial = this.initialFilters();
+      if (this.nameFilter.value !== (initial.name ?? '')) {
+        this.nameFilter.setValue(initial.name ?? '', { emitEvent: false });
+      }
+      if (this.aliasFilter.value !== (initial.alias ?? '')) {
+        this.aliasFilter.setValue(initial.alias ?? '', { emitEvent: false });
+      }
+    });
+
     this.nameFilter.valueChanges
       .pipe(
         debounceTime(1000),
@@ -67,7 +75,7 @@ export class Filters implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((query) => {
-        this.nameFilterApplied.emit(query);
+        this.filtersChange.emit({ name: query });
       });
 
     this.aliasFilter.valueChanges
@@ -80,7 +88,16 @@ export class Filters implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((query) => {
-        this.aliasFilterApplied.emit(query);
+        this.filtersChange.emit({ alias: query });
       });
+  }
+
+  /**
+   * Limita la escritura de los inputs a maxLength + 1 caracteres. Al superar el máximo,
+   * el validador maxLength invalida el control y la búsqueda no se emite
+   * (ver HeroesUtilsService.enforceMaxLength).
+   */
+  onTextInput(event: Event, control: AbstractControl): void {
+    this.heroesUtilsService.enforceMaxLength(event, control, this.FILTER_MAX_LENGTH);
   }
 }

@@ -1,9 +1,9 @@
 <div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
   <div class="max-w-7xl mx-auto pt-6">
-    <!-- Los filtros siempre estan visibles) -->
+    <!-- Los filtros siempre estan visibles: hidratados desde la URL y escritos en ella al aplicar -->
     <app-filters
-      (nameFilterApplied)="applyNameFilter($event)"
-      (aliasFilterApplied)="applyAliasFilter($event)"
+      [initialFilters]="filters()"
+      (filtersChange)="applyFilters($event)"
     ></app-filters>
 
     <!-- Cuando esta en estado loaging, el spinner solo en aparece en la zona de resultados -->
@@ -28,12 +28,13 @@
     }
   </div>
 
+  <!-- El máximo de opciones respeta siempre el límite del backend (MAX_ITEMS_PER_PAGE) -->
   <mat-paginator
     aria-label="Seleccionar página"
     [pageIndex]="currentPage() - 1"
     [length]="heroesResource.value()?.total_elements"
-    [pageSize]="itemsPerPage()"
-    [pageSizeOptions]="[5, 10, 25, 100]"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
     (page)="handlePageEvent($event)"
   >
   </mat-paginator>

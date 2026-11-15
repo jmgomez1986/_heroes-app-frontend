@@ -6,6 +6,7 @@ import { HeroesService } from './heroes';
 import {
   DeleteHeroResponse,
   EditHeroResponse,
+  GetHeroesResponse,
   Hero,
   NewHeroResponse,
   UploadImageResponse,
@@ -56,6 +57,44 @@ describe('HeroesService', () => {
     req.flush(mockResponse);
 
     expect(result).toEqual(mockResponse);
+  });
+
+  it('getHeroes pagina y filtra: solo viajan los filtros con valor (con trim)', () => {
+    const mockResponse: GetHeroesResponse = {
+      total_pages: 1,
+      current_page: 2,
+      elements_per_page: 25,
+      total_elements: 4,
+      data: [createMockHero()],
+    };
+    let result: GetHeroesResponse | undefined;
+
+    service.getHeroes(2, 25, { name: '  super ', alias: '' }).subscribe((res) => (result = res));
+
+    // alias vacío no viaja; name viaja recortado
+    const req = httpMock.expectOne(
+      `${environment.url}/api/heroes?page=2&elements_per_page=25&name=super`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('getHeroes sin filtros arma solo los params de paginación (los defaults viajan al backend)', () => {
+    service.getHeroes(1, 10).subscribe();
+
+    const req = httpMock.expectOne(
+      `${environment.url}/api/heroes?page=1&elements_per_page=10`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      total_pages: 1,
+      current_page: 1,
+      elements_per_page: 10,
+      total_elements: 0,
+      data: [],
+    });
   });
 
   it('getHeroBySlug hace GET a /heroes/:slug', () => {

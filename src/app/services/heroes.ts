@@ -21,17 +21,18 @@ export class HeroesService {
   private apiUrl = `${environment.url}/api/heroes`;
 
   /**
-   * Devuelve todos los heroes de la db. Consulta paginada de héroes aplicando el filtro por coincidencia parcial en
-   * NOMBRE (y opcionalmente por ALIAS).
+   * Devuelve todos los heroes de la db. Consulta paginada con filtros opcionales
+   * por coincidencia parcial en nombre y alias. Único punto de serialización
+   * Filters → query params: solo viajan los filtros con valor.
    */
   getHeroes(page: number, itemsPerPage: number, query?: Filters): Observable<GetHeroesResponse> {
-    const nameQuery = (query?.name ?? '').trim().toLocaleLowerCase();
-    const aliasQuery = (query?.alias ?? '').trim().toLocaleLowerCase();
+    let params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
 
-    // El filtrado por nombre/alias queda pendiente de contrato en el backend:
-    // los terminos ya se normalizan aca y quedan pendientes de viajar como query params.
-
-    const params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
+    // Trim acá: la URL y la request quedan canónicas en un solo lugar.
+    const name = (query?.name ?? '').trim();
+    const alias = (query?.alias ?? '').trim();
+    if (name) params = params.set('name', name);
+    if (alias) params = params.set('alias', alias);
 
     return this.http.get<GetHeroesResponse>(this.apiUrl, { params });
   }
