@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { firstValueFrom } from 'rxjs';
+import Swal from 'sweetalert2';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -31,6 +32,7 @@ import {
   DEFAULT_PAGE,
   MAX_ITEMS_PER_PAGE,
 } from '../../../shared/pagination.constants';
+import { I18N } from '../../../shared/i18n/es';
 
 @Component({
   selector: 'app-heroes-grid',
@@ -112,10 +114,26 @@ export class HeroesGrid {
     // escribiendo la URL, para que la grilla no muestre "sin resultados" habiendo
     // datos en otras páginas.
     effect(() => {
-      const resp = this.heroesResource.value();
+      // hasValue() evita leer value() en estado de error: leerlo ahí lanza
+      // un ResourceValueError y rompería el ciclo de detección de cambios.
+      const resp = this.heroesResource.hasValue() ? this.heroesResource.value() : undefined;
       if (resp && resp.data.length === 0 && this.currentPage() > 1) {
         this.goToPage(Math.max(DEFAULT_PAGE, resp.total_pages));
       }
+    });
+
+    // Error del GET (ej: servidor caído): aviso con Swal y la grilla cae al estado
+    // vacío; el spinner solo corresponde a una carga genuina. El error persiste
+    // hasta el próximo reload, así que el aviso se dispara una vez por error.
+    effect(() => {
+      const error = this.heroesResource.error();
+      if (!error) return;
+      console.error('No se pudo cargar el catálogo de héroes:', error);
+      Swal.fire({
+        title: I18N.heroes.grid.loadErrorTitle,
+        text: I18N.heroes.grid.loadErrorText,
+        icon: 'error',
+      });
     });
   }
 

@@ -5,7 +5,8 @@ export const I18N = {
   heroes: {
     grid: {
       empty: 'No se encontraron resultados.',
-      loadError: 'No se pudo cargar el héroe.',
+      loadErrorTitle: 'Error de servidor',
+      loadErrorText: 'No se pudo cargar el catálogo. Intente nuevamente.',
     },
     card: {
       confirmDeleteTitle: '¿Está seguro que desea eliminar el héroe',

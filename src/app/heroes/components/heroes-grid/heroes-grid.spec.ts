@@ -1,11 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter, Router } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
 
 import { HeroesGrid } from './heroes-grid';
 import { HeroesService } from '../../../services/heroes';
 import { GetHeroesResponse, Hero } from '../../../interfaces/heroes.interface';
+import { I18N } from '../../../shared/i18n/es';
+import Swal from 'sweetalert2';
+
+// Se mockea el módulo de sweetalert2 completo para poder espiar Swal.fire sin tocar el módulo real.
+vi.mock('sweetalert2', () => ({
+  default: { fire: vi.fn() },
+}));
 
 // Héroe de prueba reutilizable.
 const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
@@ -151,5 +158,32 @@ describe('HeroesGrid', () => {
       [],
       expect.objectContaining({ queryParams: { page: 3 } }),
     );
+  });
+
+  it('si el GET falla, muestra el SweetAlert de error y el estado vacío (sin spinner infinito)', async () => {
+    heroesService.getHeroes.mockReturnValue(throwError(() => new Error('server down')));
+    // La carga inicial del beforeEach ya resolvió con éxito: fuerzo un nuevo GET que falla
+    component.heroesResource.reload();
+    await fixture.whenStable();
+    await flushMicrotasks();
+
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: I18N.heroes.grid.loadErrorTitle,
+        text: I18N.heroes.grid.loadErrorText,
+        icon: 'error',
+      }),
+    );
+    // Sin spinner colgado y con el estado vacío visible
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('mat-spinner')).toBeNull();
+    expect(host.textContent).toContain('No se encontraron resultados.');
+  });
+
+  it('si el GET tiene éxito no se dispara el SweetAlert de error', async () => {
+    await fixture.whenStable();
+    await flushMicrotasks();
+
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 });
