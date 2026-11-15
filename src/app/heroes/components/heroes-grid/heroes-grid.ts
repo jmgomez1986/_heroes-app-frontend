@@ -138,9 +138,9 @@ export class HeroesGrid {
   }
 
   /** Escribe los filtros en la URL (la serialización vive en navigate): filtrar
-   * vuelve a la página 1, que viaja explícita. */
+   * vuelve a la página 1, y page/size viajan explícitos (URL canónica). */
   applyFilters(partial: Partial<FiltersQuery>): void {
-    this.navigate({ ...partial, page: DEFAULT_PAGE });
+    this.navigate({ ...partial, page: DEFAULT_PAGE, elements_per_page: this.pageSize() });
   }
 
   /** Paginación también escribe la URL; los defaults viajan explícitos. */
@@ -153,22 +153,24 @@ export class HeroesGrid {
   }
 
   private goToPage(page: number): void {
-    this.navigate({ page });
+    this.navigate({ page, elements_per_page: this.pageSize() });
   }
 
   /** Único punto de escritura de la vista en la URL: acá se decide una sola vez cómo
    * se serializa. Los números (page, elements_per_page) viajan siempre, explícitos
-   * también en sus defaults; los filtros de texto solo con valor (recortados);
-   * undefined borra el param del merge. merge preserva el resto de los params y
-   * replaceUrl evita que debounce/paginación ensucien el historial. */
+   * también en sus defaults; los filtros de texto viajan recortados, y vacíos llegan
+   * como undefined al router para que el merge los BORRE de la URL (ej: se limpió
+   * el filtro con la X). merge preserva el resto de los params y replaceUrl evita
+   * que debounce/paginación ensucien el historial. */
   private navigate(queryParams: Record<string, string | number | undefined>): void {
-    const serialized: Record<string, string | number> = {};
+    const serialized: Record<string, string | number | undefined> = {};
     for (const [key, value] of Object.entries(queryParams)) {
       if (typeof value === 'number') {
         serialized[key] = value;
-      } else if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed) serialized[key] = trimmed;
+      } else {
+        const trimmed = typeof value === 'string' ? value.trim() : '';
+        // Vacío o undefined → borra el param del merge; nunca se "preserva"
+        serialized[key] = trimmed || undefined;
       }
     }
     this.router.navigate([], {

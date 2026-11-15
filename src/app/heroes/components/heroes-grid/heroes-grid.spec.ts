@@ -103,7 +103,7 @@ describe('HeroesGrid', () => {
     expect(heroesService.getHeroes).toHaveBeenLastCalledWith(1, 10, {});
   });
 
-  it('applyFilters escribe la URL con el filtro recortado y la página 1 explícita', () => {
+  it('applyFilters escribe la URL con el filtro recortado y page/size explícitos', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.applyFilters({ name: '  batman  ' });
@@ -111,7 +111,7 @@ describe('HeroesGrid', () => {
     expect(navigateSpy).toHaveBeenCalledWith(
       [],
       expect.objectContaining({
-        queryParams: { name: 'batman', page: 1 },
+        queryParams: { name: 'batman', page: 1, elements_per_page: 10 },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       }),
@@ -119,14 +119,27 @@ describe('HeroesGrid', () => {
   });
 
   it('applyFilters descarta los filtros vacíos y la página 1 viaja explícita', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.applyFilters({ alias: '   ' });
 
-    expect(navigateSpy).toHaveBeenCalledWith(
+    expect(router.navigate).toHaveBeenCalledWith(
       [],
-      expect.objectContaining({ queryParams: { page: 1 } }),
+      expect.objectContaining({ queryParamsHandling: 'merge', replaceUrl: true }),
     );
+  });
+
+  it('limpiar un filtro lo BORRA de la URL: el router recibe la key con undefined (señal de borrado del merge)', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.applyFilters({ alias: '   ' });
+
+    const extras = vi.mocked(router.navigate).mock.calls[0][1]!;
+    expect(extras.queryParams).toStrictEqual({
+      alias: undefined,
+      page: 1,
+      elements_per_page: 10,
+    });
   });
 
   it('handlePageEvent escribe page y size en la URL; los defaults viajan explícitos', () => {
@@ -155,7 +168,7 @@ describe('HeroesGrid', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(
       [],
-      expect.objectContaining({ queryParams: { page: 3 } }),
+      expect.objectContaining({ queryParams: { page: 3, elements_per_page: 10 } }),
     );
   });
 
