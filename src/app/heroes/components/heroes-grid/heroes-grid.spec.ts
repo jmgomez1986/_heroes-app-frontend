@@ -103,7 +103,7 @@ describe('HeroesGrid', () => {
     expect(heroesService.getHeroes).toHaveBeenLastCalledWith(1, 10, {});
   });
 
-  it('applyFilters escribe la URL con el filtro y resetea la página (los vacíos no viajan)', () => {
+  it('applyFilters escribe la URL con el filtro recortado y la página 1 explícita', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.applyFilters({ name: '  batman  ' });
@@ -111,26 +111,25 @@ describe('HeroesGrid', () => {
     expect(navigateSpy).toHaveBeenCalledWith(
       [],
       expect.objectContaining({
-        // page: undefined no aparece (vuelve al default = página 1)
-        queryParams: { name: 'batman' },
+        queryParams: { name: 'batman', page: 1 },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       }),
     );
   });
 
-  it('applyFilters descarta los filtros vacíos', () => {
+  it('applyFilters descarta los filtros vacíos y la página 1 viaja explícita', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.applyFilters({ alias: '   ' });
 
     expect(navigateSpy).toHaveBeenCalledWith(
       [],
-      expect.objectContaining({ queryParams: {} }),
+      expect.objectContaining({ queryParams: { page: 1 } }),
     );
   });
 
-  it('handlePageEvent escribe page y size en la URL; los defaults no viajan', () => {
+  it('handlePageEvent escribe page y size en la URL; los defaults viajan explícitos', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.handlePageEvent({ pageIndex: 2, pageSize: 25 } as PageEvent);
@@ -142,7 +141,7 @@ describe('HeroesGrid', () => {
     component.handlePageEvent({ pageIndex: 0, pageSize: 10 } as PageEvent);
     expect(navigateSpy).toHaveBeenLastCalledWith(
       [],
-      expect.objectContaining({ queryParams: {} }),
+      expect.objectContaining({ queryParams: { page: 1, elements_per_page: 10 } }),
     );
   });
 

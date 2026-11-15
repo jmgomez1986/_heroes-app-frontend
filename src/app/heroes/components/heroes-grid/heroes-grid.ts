@@ -137,23 +137,15 @@ export class HeroesGrid {
     });
   }
 
-  /** Escribe los filtros en la URL: los vacíos no viajan y al filtrar se vuelve a la página 1. */
+  /** Escribe los filtros en la URL (la serialización vive en navigate): filtrar
+   * vuelve a la página 1, que viaja explícita. */
   applyFilters(partial: Partial<FiltersQuery>): void {
-    const queryParams: Record<string, string | number | undefined> = {};
-    for (const [key, value] of Object.entries(partial)) {
-      queryParams[key] = value?.trim() || undefined; // vacío → fuera de la URL
-    }
-    queryParams['page'] = undefined; // nuevo filtro → página 1 (default, no viaja)
-    this.navigate(queryParams);
+    this.navigate({ ...partial, page: DEFAULT_PAGE });
   }
 
-  /** Paginación también escribe la URL; page=1 y el size default no viajan. */
+  /** Paginación también escribe la URL; los defaults viajan explícitos. */
   handlePageEvent(e: PageEvent): void {
-    const page = e.pageIndex + 1;
-    this.navigate({
-      page: page > DEFAULT_PAGE ? page : undefined,
-      elements_per_page: e.pageSize !== DEFAULT_ITEMS_PER_PAGE ? e.pageSize : undefined,
-    });
+    this.navigate({ page: e.pageIndex + 1, elements_per_page: e.pageSize });
   }
 
   refreshHeroes() {
@@ -161,15 +153,27 @@ export class HeroesGrid {
   }
 
   private goToPage(page: number): void {
-    this.navigate({ page: page > DEFAULT_PAGE ? page : undefined });
+    this.navigate({ page });
   }
 
-  /** Único punto de escritura de la vista en la URL: merge para no perder el resto
-   * de los params y replaceUrl para que debounce/paginación no ensucien el historial. */
+  /** Único punto de escritura de la vista en la URL: acá se decide una sola vez cómo
+   * se serializa. Los números (page, elements_per_page) viajan siempre, explícitos
+   * también en sus defaults; los filtros de texto solo con valor (recortados);
+   * undefined borra el param del merge. merge preserva el resto de los params y
+   * replaceUrl evita que debounce/paginación ensucien el historial. */
   private navigate(queryParams: Record<string, string | number | undefined>): void {
+    const serialized: Record<string, string | number> = {};
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (typeof value === 'number') {
+        serialized[key] = value;
+      } else if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed) serialized[key] = trimmed;
+      }
+    }
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams,
+      queryParams: serialized,
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
