@@ -1,164 +1,201 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { of } from 'rxjs';
+import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter, Router } from '@angular/router';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+import { PageEvent } from '@angular/material/paginator';
 
 import { HeroesGrid } from './heroes-grid';
 import { HeroesService } from '../../../services/heroes';
-import { Hero, HeroesResponsePaginated } from '../../../interfaces/heroes.interface';
-import { provideRouter } from '@angular/router';
+import { GetHeroesResponse, Hero } from '../../../interfaces/heroes.interface';
+import { I18N } from '../../../shared/i18n/es';
+import Swal from 'sweetalert2';
 
-// Se mockea `HeroesService.getHeroesPaginated` con un observable que emite al instante,
-// para que el resource se complete y `whenStable()` resuelva sin tocar HTTP.
-const makeHero = (id: string, name: string, alias = 'Superman'): Hero => ({
-  id,
-  name,
-  alias,
+// Se mockea el módulo de sweetalert2 completo para poder espiar Swal.fire sin tocar el módulo real.
+vi.mock('sweetalert2', () => ({
+  default: { fire: vi.fn() },
+}));
+
+// Héroe de prueba reutilizable.
+const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
+  _id: '1',
+  slug: 'superman',
+  name: 'Clark Kent',
+  alias: 'Superman',
   powers: ['Vuelo'],
   description: 'Descripción de prueba',
   team: 'Liga de la Justicia',
-  image: 'superman.jpg',
+  image: '',
   status: 'Active',
-  category: 'Heroe',
+  category: 'Hero',
   universe: 'DC',
+  ...overrides,
 });
 
-const makePaginatedResponse = (data: Hero[]): HeroesResponsePaginated => ({
-  first: 1,
-  prev: null,
-  next: null,
-  last: 1,
-  pages: data.length > 0 ? 1 : 0,
-  items: data.length,
-  data,
+const createMockResponse = (overrides: Partial<GetHeroesResponse> = {}): GetHeroesResponse => ({
+  total_pages: 1,
+  current_page: 1,
+  elements_per_page: 10,
+  total_elements: 4,
+  data: [createMockHero()],
+  ...overrides,
+});
+
+// Fake del servicio: cada método es un vi.fn() que emite al instante.
+// No se toca HTTP ni hace falta provideHttpClientTesting (patrón ya usado en el repo).
+const createHeroesServiceMock = () => ({
+  getHeroes: vi.fn().mockReturnValue(of(createMockResponse())),
 });
 
 describe('HeroesGrid', () => {
   let component: HeroesGrid;
   let fixture: ComponentFixture<HeroesGrid>;
-  let paginatedResponse: HeroesResponsePaginated;
-  let getHeroesPaginatedMock: ReturnType<typeof vi.fn>;
+  let router: Router;
+  let heroesService!: ReturnType<typeof createHeroesServiceMock>;
+  // Fuente controlable de query params: hace las veces de la URL.
+  let queryParams$: BehaviorSubject<ParamMap>;
+
+  // Espera a que se resuelvan las promesas (el loader del resource, RxJS, etc.).
+  const flushMicrotasks = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
   beforeEach(async () => {
-    paginatedResponse = makePaginatedResponse([makeHero('1', 'Clark Kent')]);
-    getHeroesPaginatedMock = vi.fn();
-    // Por defecto responde igual que antes, sin importar la página pedida.
-    getHeroesPaginatedMock.mockImplementation(() => of(paginatedResponse));
+    heroesService = createHeroesServiceMock();
+    queryParams$ = new BehaviorSubject(convertToParamMap({}));
 
     await TestBed.configureTestingModule({
       imports: [HeroesGrid],
       providers: [
         provideRouter([]),
+        { provide: HeroesService, useValue: heroesService },
         {
-          provide: HeroesService,
-          useValue: { getHeroesPaginated: getHeroesPaginatedMock },
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: queryParams$.value },
+            queryParamMap: queryParams$.asObservable(),
+          },
         },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroesGrid);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should reload the heroes resource when refreshHeroes is called', () => {
-    const reloadSpy = vi.spyOn(component.heroesResource, 'reload');
+  it('arma la consulta con page, size y filtros tomados de la URL', async () => {
+    queryParams$.next(convertToParamMap({ page: '2', elements_per_page: '25', name: 'super' }));
+    await flushMicrotasks();
 
-    component.refreshHeroes();
-
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
+    expect(heroesService.getHeroes).toHaveBeenLastCalledWith(2, 25, { name: 'super' });
   });
 
-  it('should render a hero card for each hero when the resource has data', async () => {
-    paginatedResponse = makePaginatedResponse([
-      makeHero('1', 'Clark Kent'),
-      makeHero('2', 'Bruce Wayne'),
-    ]);
+  it('sanitiza page y size inválidos en la URL contra los límites del backend', async () => {
+    queryParams$.next(convertToParamMap({ page: 'abc', elements_per_page: '999' }));
+    await flushMicrotasks();
 
-    component.heroesResource.reload();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.queryAll(By.css('app-hero-grid-card')).length).toBe(2);
-    expect(fixture.nativeElement.textContent).not.toContain('No se encontraron resultados.');
+    expect(heroesService.getHeroes).toHaveBeenLastCalledWith(1, 10, {});
   });
 
-  it('mustra el mensaje de estado vacío cuando no hay resultados', async () => {
-    paginatedResponse = makePaginatedResponse([]);
+  it('applyFilters escribe la URL con el filtro recortado y page/size explícitos', () => {
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    component.heroesResource.reload();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    component.applyFilters({ name: '  batman  ' });
 
-    expect(fixture.debugElement.queryAll(By.css('app-hero-grid-card')).length).toBe(0);
-    expect(fixture.nativeElement.textContent).toContain('No se encontraron resultados.');
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { name: 'batman', page: 1, elements_per_page: 10 },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      }),
+    );
   });
 
-  it('should call refreshHeroes when a card emits heroDeleted', async () => {
-    const refreshSpy = vi.spyOn(component, 'refreshHeroes');
+  it('applyFilters descarta los filtros vacíos y la página 1 viaja explícita', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    component.heroesResource.reload();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    component.applyFilters({ alias: '   ' });
 
-    const card = fixture.debugElement.query(By.css('app-hero-grid-card'));
-    expect(card).toBeTruthy();
-    card.componentInstance.heroDeleted.emit();
-
-    expect(refreshSpy).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({ queryParamsHandling: 'merge', replaceUrl: true }),
+    );
   });
 
-  it('al borrar el último elemento de la última página, retrocede a una página con datos', async () => {
-    // Dataset: 10 héroes = 1 página completa (itemsPerPage = 10). Tras el borrado,
-    // la página 2 queda fuera de rango: data vacía pero items > 0.
-    const heroes = Array.from({ length: 10 }, (_, i) => makeHero(String(i + 1), `Héroe ${i + 1}`));
-    const page1Response = makePaginatedResponse(heroes);
-    const page2OutOfRange: HeroesResponsePaginated = {
-      ...makePaginatedResponse([]),
-      items: 10,
-      pages: 1,
-    };
+  it('limpiar un filtro lo BORRA de la URL: el router recibe la key con undefined (señal de borrado del merge)', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    // Mock consciente de la página pedida: la 2 responde vacía, la 1 con los datos.
-    getHeroesPaginatedMock.mockImplementation((page: number) =>
-      of(page > 1 ? page2OutOfRange : page1Response),
+    component.applyFilters({ alias: '   ' });
+
+    const extras = vi.mocked(router.navigate).mock.calls[0][1]!;
+    expect(extras.queryParams).toStrictEqual({
+      alias: undefined,
+      page: 1,
+      elements_per_page: 10,
+    });
+  });
+
+  it('handlePageEvent escribe page y size en la URL; los defaults viajan explícitos', () => {
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.handlePageEvent({ pageIndex: 2, pageSize: 25 } as PageEvent);
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({ queryParams: { page: 3, elements_per_page: 25 } }),
     );
 
-    // El usuario está en la página 2 y borra el último elemento de esa página:
-    component.currentPage.set(2);
-    component.refreshHeroes();
-
-    await fixture.whenStable();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    // El efecto detecta la página fuera de rango y vuelve a la última con datos.
-    expect(component.currentPage()).toBe(1);
-    expect(fixture.debugElement.queryAll(By.css('app-hero-grid-card')).length).toBe(10);
-    expect(fixture.nativeElement.textContent).not.toContain('No se encontraron resultados.');
+    component.handlePageEvent({ pageIndex: 0, pageSize: 10 } as PageEvent);
+    expect(navigateSpy).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({ queryParams: { page: 1, elements_per_page: 10 } }),
+    );
   });
 
-  it('applyNameFilter setea searchName y resetea currentPage a 1', () => {
-    component.currentPage.set(3);
-    component.searchName.set('otro');
+  it('con data vacía en una página fuera de rango, vuelve a la última página con datos (en la URL)', async () => {
+    heroesService.getHeroes.mockReturnValue(of(createMockResponse({ data: [], total_pages: 3 })));
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    component.applyNameFilter('super');
+    queryParams$.next(convertToParamMap({ page: '5' }));
+    await fixture.whenStable();
+    await flushMicrotasks();
 
-    expect(component.searchName()).toBe('super');
-    expect(component.currentPage()).toBe(1);
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({ queryParams: { page: 3, elements_per_page: 10 } }),
+    );
   });
 
-  it('applyAliasFilter setea searchAlias y resetea currentPage a 1', () => {
-    component.currentPage.set(2);
-    component.searchAlias.set('otro');
+  it('si el GET falla, muestra el SweetAlert de error y el estado vacío (sin spinner infinito)', async () => {
+    heroesService.getHeroes.mockReturnValue(throwError(() => new Error('server down')));
+    // La carga inicial del beforeEach ya resolvió con éxito: fuerzo un nuevo GET que falla
+    component.heroesResource.reload();
+    await fixture.whenStable();
+    await flushMicrotasks();
 
-    component.applyAliasFilter('cla');
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: I18N.heroes.grid.loadErrorTitle,
+        text: I18N.heroes.grid.loadErrorText,
+        icon: 'error',
+      }),
+    );
+    // Sin spinner colgado y con el estado vacío visible
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('mat-spinner')).toBeNull();
+    expect(host.textContent).toContain('No se encontraron resultados.');
+  });
 
-    expect(component.searchAlias()).toBe('cla');
-    expect(component.currentPage()).toBe(1);
+  it('si el GET tiene éxito no se dispara el SweetAlert de error', async () => {
+    await fixture.whenStable();
+    await flushMicrotasks();
+
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 });

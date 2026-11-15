@@ -16,14 +16,14 @@ import { MatChipsModule } from '@angular/material/chips';
 
 import { Hero } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
+import { HeroImage } from '../../../components/hero-image/hero-image';
 import { MatIcon } from '@angular/material/icon';
 import { I18N } from '../../../shared/i18n/es';
-import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-hero-grid-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, NgOptimizedImage],
+  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, HeroImage],
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {
@@ -48,7 +48,7 @@ export class HeroGridCard {
     }).then((result) => {
       if (result.isConfirmed) {
         this.heroesService
-          .deleteHero(this.hero().id)
+          .deleteHero(this.hero().slug)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
@@ -73,13 +73,9 @@ export class HeroGridCard {
   }
 
   editHero() {
-    this.router.navigate([`/edit-hero/${this.hero().id}`]);
+    this.router.navigate([`/edit-hero/${this.hero().slug}`]);
   }
   viewHero() {
-    this.router.navigate([`/view-hero/${this.hero().id}`]);
-  }
-
-  isBase64(src: string): boolean {
-    return src.startsWith('data:image');
+    this.router.navigate([`/view-hero/${this.hero().slug}`]);
   }
 }

@@ -1,66 +1,87 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { By } from '@angular/platform-browser';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import HeroesPage from './heroes-page';
-import { HeroesResponsePaginated } from '../../interfaces/heroes.interface';
 import { HeroesService } from '../../services/heroes';
+import { HeroesUtilsService } from '../../services/heroes-utils';
+import { GetHeroesResponse } from '../../interfaces/heroes.interface';
 
-// Se mockea HeroesService por un fake que emite al instante (igual que heroes-grid.spec.ts),
-// para que el HeroesGrid real se renderice sin tocar HTTP y el template quede cubierto.
-// NO se usa TestBed.overrideComponent porque hace que el HTML no se renderice y no tenga cobertura.
-const fakePaginatedResponse: HeroesResponsePaginated = {
-  first: 1,
-  prev: null,
-  next: null,
-  last: 1,
-  pages: 1,
-  items: 0,
+const createMockResponse = (): GetHeroesResponse => ({
+  total_pages: 1,
+  current_page: 1,
+  elements_per_page: 10,
+  total_elements: 0,
   data: [],
-};
+});
+
+// Fake del servicio: la página monta el grid completo, que consulta en el arranque.
+const heroesServiceMock = { getHeroes: vi.fn().mockReturnValue(of(createMockResponse())) };
+
 describe('HeroesPage', () => {
   let component: HeroesPage;
   let fixture: ComponentFixture<HeroesPage>;
   let router: Router;
+  let heroesUtilsService: HeroesUtilsService;
+  // Snapshot mutable: cada test define los query params "actuales" de la URL.
+  const snapshotQueryParams: Record<string, string> = {};
+
+  const flushMicrotasks = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeroesPage],
       providers: [
         provideRouter([]),
-        { provide: HeroesService, useValue: { getHeroesPaginated: () => of(fakePaginatedResponse) } },
+        { provide: HeroesService, useValue: heroesServiceMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParams: snapshotQueryParams, queryParamMap: convertToParamMap({}) },
+            queryParamMap: of(convertToParamMap({})),
+          },
+        },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeroesPage);
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
+    heroesUtilsService = TestBed.inject(HeroesUtilsService);
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    delete snapshotQueryParams['name'];
+    delete snapshotQueryParams['alias'];
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call router.navigate with "/new-hero" when navigateToNewHero is called', () => {
-    // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
+  it('el título con URL con filtros navega a /heroes sin query params (la grilla re-consulta sola)', async () => {
+    snapshotQueryParams['name'] = 'super';
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    component.navigateToNewHero();
-    expect(navigateSpy).toHaveBeenCalledWith(['/new-hero']);
+    const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
+
+    (fixture.nativeElement.querySelector('h1') as HTMLElement).click();
+    await flushMicrotasks();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    // La limpieza de la URL ya dispara el GET: no hace falta forzar el refresco
+    expect(refreshSpy).not.toHaveBeenCalled();
   });
 
-  it('should call router.navigate with "/new-hero" when the button is clicked', () => {
-    // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
+  it('el título con URL ya limpia navega a /heroes y fuerza el refresco del GET', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    // Renderiza el template para poder acceder al DOM.
-    fixture.detectChanges();
-    // Busca el botón en el template y verifica que exista
-    const button = fixture.debugElement.query(By.css('button'));
-    expect(button).toBeTruthy();
-    // Dispara el evento (click) bindeado a navigateToNewHero().
-    button.triggerEventHandler('click', null);
+    const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/new-hero']);
+    (fixture.nativeElement.querySelector('h1') as HTMLElement).click();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
+    // Con la URL limpia el navigate es un no-op: el refresco forzado re-dispara el GET
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 });

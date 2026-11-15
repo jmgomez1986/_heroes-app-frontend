@@ -1,19 +1,23 @@
 <div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
   <div class="max-w-7xl mx-auto pt-6">
-    <!-- Los filtros siempre estan visibles) -->
+    <!-- Los filtros siempre estan visibles: hidratados desde la URL y escritos en ella al aplicar -->
     <app-filters
-      (nameFilterApplied)="applyNameFilter($event)"
-      (aliasFilterApplied)="applyAliasFilter($event)"
+      [initialFilters]="filters()"
+      (filtersChange)="applyFilters($event)"
     ></app-filters>
 
-    <!-- Cuando esta en estado loaging, el spinner solo en aparece en la zona de resultados -->
-    @if (heroesResource.isLoading()) {
+    <!-- Cuando hay error del GET, el detalle va en el SweetAlert: la grilla muestra el estado vacío -->
+    @if (heroesResource.error()) {
+      <div class="col-span-full text-center text-gray-500 py-10">
+        No se encontraron resultados.
+      </div>
+    } @else if (heroesResource.isLoading()) {
       <div class="flex justify-center items-center h-64">
         <mat-spinner diameter="40"></mat-spinner>
       </div>
     } @else {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 auto-rows-fr">
-        @for (hero of heroesResource.value()?.data; track hero.id) {
+        @for (hero of heroesResource.value()?.data; track hero._id) {
           <app-hero-grid-card
             [hero]="hero"
             (heroDeleted)="refreshHeroes()"
@@ -28,12 +32,14 @@
     }
   </div>
 
+  <!-- El máximo de opciones respeta siempre el límite del backend (MAX_ITEMS_PER_PAGE).
+       hasValue() evita leer value() en estado de error: leerlo ahí lanza un ResourceValueError. -->
   <mat-paginator
     aria-label="Seleccionar página"
     [pageIndex]="currentPage() - 1"
-    [length]="heroesResource.value()?.items || 0"
-    [pageSize]="itemsPerPage()"
-    [pageSizeOptions]="[5, 10, 25, 100]"
+    [length]="heroesResource.hasValue() ? heroesResource.value().total_elements : 0"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
     (page)="handlePageEvent($event)"
   >
   </mat-paginator>

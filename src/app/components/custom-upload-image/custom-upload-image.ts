@@ -5,10 +5,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-/** Selección de imagen emitida por el componente: base64 de la imagen y nombre del archivo. */
+/** Selección de imagen emitida por el componente: archivo crudo y nombre del archivo. */
 export interface CustomUploadImageSelection {
   fileName: string | null;
-  base64: string | null;
+  file: File | null;
 }
 
 @Component({
@@ -28,7 +28,7 @@ export class CustomUploadImage {
   // Signals
   mode = input<string>('create');
   heroImage = input<string>('');
-  /** Previsualización de la imagen seleccionada (data URL). */
+  /** Previsualización de la imagen seleccionada (URL de Cloudinary o object URL local). */
   readonly imagePreview = signal<string | null>(null);
   /** Nombre del archivo seleccionado (nombre.extension). */
   readonly imageFileName = signal<string | null>(null);
@@ -40,20 +40,26 @@ export class CustomUploadImage {
   /** Tamaño máximo de la imagen original: 1 MB. */
   private readonly MAX_IMAGE_SIZE = 1 * 1024 * 1024;
 
-  /** Emite la imagen seleccionada (base64 + nombre). Emite con valores null al reiniciar. */
+  /** Object URL del preview actual; se revoca al reemplazarlo para liberar memoria. */
+  private objectUrl: string | null = null;
+
+  /** Emite la imagen seleccionada (archivo crudo + nombre). Emite con valores null al reiniciar. */
   readonly selectionChange = output<CustomUploadImageSelection>();
 
   constructor() {
     effect(() => {
       const image = this.heroImage();
+      // Imagen existente del backend: secure_url completa de Cloudinary o vacia.
+      // La URL va tal cual al preview; el input muestra solo el nombre del archivo.
+      // El effect depende unicamente de heroImage: no lee las senales que escribe,
+      // para no pisar el estado de una seleccion de archivo en curso.
       if (image) {
-        const isBase64 = image.startsWith('data:');
-        // base64 → se usa tal cual; nombre de archivo → se busca en public/images
-        this.imagePreview.set(isBase64 ? image : `images/${image}`);
-        this.imageFileName.set(isBase64 ? 'Imagen existente' : image);
-        this.imageNameControl.setValue(this.imageFileName() ?? '');
+        const fileName = decodeURIComponent(image.split('/').pop() ?? 'Imagen existente');
+        this.setPreview(image);
+        this.imageFileName.set(fileName);
+        this.imageNameControl.setValue(fileName);
       } else {
-        this.imagePreview.set(null);
+        this.setPreview(null);
         this.imageFileName.set(null);
         this.imageNameControl.setValue('');
       }
@@ -94,18 +100,24 @@ export class CustomUploadImage {
     // Se limpia el input para poder volver a seleccionar el mismo archivo
     element.value = '';
 
-    // Se lee la imagen tal cual con FileReader, se muestra el preview y se emite al padre
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      this.imagePreview.set(dataUrl);
-      this.selectionChange.emit({ fileName: file.name, base64: dataUrl });
-    };
-    reader.onerror = () => {
-      console.error('No se pudo leer el archivo de imagen.');
-      this.resetImage(null);
-    };
-    reader.readAsDataURL(file);
+    // El archivo viaja crudo al padre (se enviará como binario al backend) y el preview
+    // se genera con un object URL local, sin convertir la imagen a base64.
+    const objectUrl = URL.createObjectURL(file);
+    this.setPreview(objectUrl, objectUrl);
+    this.selectionChange.emit({ fileName: file.name, file });
+  }
+
+  /**
+   * Actualiza el preview. Si había un object URL anterior distinto al nuevo, se revoca
+   * para liberar memoria (los object URLs no se liberan solos). Las URLs de Cloudinary
+   * se asignan tal cual sin gestionar revocación.
+   */
+  private setPreview(preview: string | null, objectUrl: string | null = null): void {
+    if (this.objectUrl && this.objectUrl !== objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+    }
+    this.objectUrl = objectUrl;
+    this.imagePreview.set(preview);
   }
 
   /**
@@ -123,7 +135,7 @@ export class CustomUploadImage {
       this.imageNameControl.setErrors(null);
     }
 
-    this.imagePreview.set(null);
-    this.selectionChange.emit({ fileName: null, base64: null });
+    this.setPreview(null);
+    this.selectionChange.emit({ fileName: null, file: null });
   }
 }

@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import Swal, { type SweetAlertResult } from 'sweetalert2';
 import { of, throwError } from 'rxjs';
-import { screen } from '@testing-library/angular';
 
 import { HeroGridCard } from './hero-grid-card';
 import { Hero } from '../../../interfaces/heroes.interface';
@@ -13,7 +12,8 @@ import { I18N } from '../../../shared/i18n/es';
 // usarla para sobreescribir algun atributo
 // Ejemplo: fixture.componentRef.setInput('hero', createMockHero({ name: 'Nuevo nombre' }));
 const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
-  id: '1',
+  _id: '1',
+  slug: 'superman',
   name: 'Clark Kent',
   alias: 'Superman',
   powers: ['Vuelo', 'Super fuerza', 'Visión de calor'],
@@ -30,10 +30,10 @@ const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
 // No se toca HTTP ni hace falta provideHttpClientTesting (patrón ya usado en el repo).
 const createHeroesServiceMock = () => ({
   getHeroes: vi.fn(),
-  getHeroById: vi.fn(),
+  getHeroBySlug: vi.fn(),
   addNewHero: vi.fn().mockReturnValue(of({ res: createMockHero() })),
   editHero: vi.fn().mockReturnValue(of(createMockHero())),
-  deleteHero: vi.fn().mockReturnValue(of(createMockHero())),
+  deleteHero: vi.fn().mockReturnValue(of({ msg: 'Hero deleted correctly.' })),
 });
 
 // Se mockea el módulo de sweetalert2 completo para poder espiar Swal.fire sin tocar el módulo real.
@@ -125,18 +125,19 @@ describe('HeroGridCard', () => {
     expect(chipTexts).not.toContain('Invisibilidad');
   });
 
-  it('should call router.navigate with "/edit-hero/" when navigateToNewHero is called', () => {
+  it('should call router.navigate with "/edit-hero/" when editHero is called', () => {
     // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.editHero();
-    expect(navigateSpy).toHaveBeenCalledWith(['/edit-hero/1']);
+    // La edición navega por slug (contrato real del backend), no por id
+    expect(navigateSpy).toHaveBeenCalledWith(['/edit-hero/superman']);
   });
 
-  it('should call router.navigate with "/view-hero/" when navigateToNewHero is called', () => {
+  it('should call router.navigate with "/view-hero/" when viewHero is called', () => {
     // Se crea un espia de router.navigate para verificar que se llame con el argumento correcto
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.viewHero();
-    expect(navigateSpy).toHaveBeenCalledWith(['/view-hero/1']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/view-hero/superman']);
   });
 
   it('deleteHero muestra el diálogo de confirmación de Swal al guardar', async () => {
@@ -161,12 +162,12 @@ describe('HeroGridCard', () => {
     expect(heroesService.deleteHero).not.toHaveBeenCalled();
   });
 
-  it('deleteHero llama al servicio deleteHero con el id del héroe cuando Swal confirma', async () => {
+  it('deleteHero llama al servicio deleteHero con el slug del héroe cuando Swal confirma', async () => {
     mockSwalConfirmation(true);
     component.deleteHero();
     await flushMicrotasks();
 
-    expect(heroesService.deleteHero).toHaveBeenCalledWith('1');
+    expect(heroesService.deleteHero).toHaveBeenCalledWith('superman');
   });
 
   it('deleteHero muestra el mensaje de éxito y emite heroDeleted cuando la eliminación es exitosa', async () => {
@@ -192,19 +193,5 @@ describe('HeroGridCard', () => {
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({ title: I18N.heroes.card.deleteErrorTitle }),
     );
-  });
-
-  it('should show image when is base 64', () => {
-    // Se setea el input "hero" con una imagen que simula ser que esta en base 64
-    fixture.componentRef.setInput(
-      'hero',
-      createMockHero({
-        image: 'data:image',
-      }),
-    );
-    fixture.detectChanges();
-
-    const imgElement = screen.getByTestId('img-base64');
-    expect(imgElement).toBeDefined();
   });
 });

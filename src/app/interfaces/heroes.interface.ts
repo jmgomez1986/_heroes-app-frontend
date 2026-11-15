@@ -3,27 +3,11 @@ export interface Filters {
   alias?: string;
 }
 
-export interface HeroesResponsePaginated {
-  first: number;
-  prev: number | null;
-  next: number | null;
-  last: number;
-  pages: number;
-  items: number;
-  data: Hero[];
-}
-
-export interface HeroesGridResourceParams {
-  page: number;
-  size: number;
-  query: Filters;
-  refreshKey: number;
-}
-
 export interface Hero {
-  id: string;
+  _id: string;
   name: string;
   alias: string;
+  slug: string;
   powers: string[];
   description: string;
   team: string;
@@ -33,6 +17,41 @@ export interface Hero {
   universe: string;
 }
 
+export interface HeroesGridResourceParams {
+  page: number;
+  size: number;
+  query: Filters;
+  refreshKey: number;
+}
+
+// Respuesta real del backend al obtener el catalogo de heroes (GET /heroes)
+export interface GetHeroesResponse {
+  total_pages: number;
+  current_page: number;
+  elements_per_page: number;
+  total_elements: number;
+  data: Hero[];
+}
+
+// Respuesta real del backend al crear un héroe (POST /heroes)
 export interface NewHeroResponse {
-  res: Hero;
+  msg: string;
+  response: Hero;
+}
+
+// Respuesta real del backend al editar un héroe (PATCH /heroes/:slug)
+export interface EditHeroResponse {
+  msg: string;
+  response: Hero;
+}
+
+// Respuesta real del backend al subir la imagen de un héroe (POST /heroes/:slug/image)
+export interface UploadImageResponse {
+  msg: string;
+  response: Hero;
+}
+
+// Respuesta real del backend al eliminar un héroe (DELETE /heroes/:slug)
+export interface DeleteHeroResponse {
+  msg: string;
 }

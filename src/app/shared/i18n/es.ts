@@ -5,7 +5,8 @@ export const I18N = {
   heroes: {
     grid: {
       empty: 'No se encontraron resultados.',
-      loadError: 'No se pudo cargar el héroe.',
+      loadErrorTitle: 'Error de servidor',
+      loadErrorText: 'No se pudo cargar el catálogo. Intente nuevamente.',
     },
     card: {
       confirmDeleteTitle: '¿Está seguro que desea eliminar el héroe',
@@ -34,6 +35,12 @@ export const I18N = {
     saveErrorTitle: 'Error',
     saveErrorCreateText: 'No se pudo guardar el héroe. Intente nuevamente.',
     saveErrorEditText: 'No se pudo editar el héroe. Intente nuevamente.',
+    // El héroe ya quedó creado: solo falló la subida de la imagen (se puede reintentar desde Editar).
+    saveImageErrorCreateText:
+      'El héroe se creó correctamente, pero no se pudo subir la imagen. Intente nuevamente desde Editar.',
+    // El héroe ya quedó editado: solo falló la subida de la imagen (se puede reintentar desde Editar).
+    saveImageErrorEditText:
+      'El héroe se editó correctamente, pero no se pudo subir la imagen. Intente nuevamente desde Editar.',
     confirmCreate: 'Crear',
     confirmEdit: 'Editar',
     cancel: 'Cancelar',

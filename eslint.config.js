@@ -20,6 +20,7 @@ module.exports = defineConfig([
       eqeqeq: 'error',
       quotes: ['error', 'single'],
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': 'warn',
       '@angular-eslint/directive-selector': [
         'error',
         {

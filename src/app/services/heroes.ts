@@ -1,70 +1,45 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 import {
   Filters,
+  GetHeroesResponse,
   Hero,
-  HeroesResponsePaginated,
+  EditHeroResponse,
   NewHeroResponse,
+  UploadImageResponse,
+  DeleteHeroResponse,
 } from '../interfaces/heroes.interface';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HeroesService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/heroes';
-
-  // Devuelve todos los heroes de la db
-  getHeroes(): Observable<Hero[]> {
-    return this.http
-      .get<Hero[]>(this.apiUrl)
-      .pipe(
-        map((heroes) => heroes.map((hero) => ({ ...hero, image: this.resolveImage(hero.image) }))),
-      );
-  }
+  private apiUrl = `${environment.url}/api/heroes`;
 
   /**
-   * Consulta paginada de héroes aplicando el filtro por coincidencia parcial en el NOMBRE (y opcionalmente por ALIAS).
-   * La lógica de búsqueda vive acá, no en el mock
+   * Devuelve todos los heroes de la db. Consulta paginada con filtros opcionales
+   * por coincidencia parcial en nombre y alias. Único punto de serialización
+   * Filters → query params: solo viajan los filtros con valor.
    */
-  getHeroesPaginated(
-    page: number,
-    itemsPerPage: number,
-    query?: Filters,
-  ): Observable<HeroesResponsePaginated> {
-    const nameQuery = (query?.name ?? '').trim().toLocaleLowerCase();
-    const aliasQuery = (query?.alias ?? '').trim().toLocaleLowerCase();
+  getHeroes(page: number, itemsPerPage: number, query?: Filters): Observable<GetHeroesResponse> {
+    let params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
 
-    return this.getHeroes().pipe(
-      map((heroes) => {
-        const filtered = heroes.filter((hero) => {
-          const matchesName = !nameQuery || hero.name.toLocaleLowerCase().includes(nameQuery);
-          const matchesAlias = !aliasQuery || hero.alias.toLocaleLowerCase().includes(aliasQuery);
-          return matchesName && matchesAlias;
-        });
+    // Trim acá: la URL y la request quedan canónicas en un solo lugar.
+    const name = (query?.name ?? '').trim();
+    const alias = (query?.alias ?? '').trim();
+    if (name) params = params.set('name', name);
+    if (alias) params = params.set('alias', alias);
 
-        const pages = Math.ceil(filtered.length / itemsPerPage);
-        const start = (page - 1) * itemsPerPage;
-        const data = filtered.slice(start, start + itemsPerPage);
-
-        return {
-          first: 1,
-          prev: page > 1 ? page - 1 : null,
-          next: page < pages ? page + 1 : null,
-          last: pages,
-          pages,
-          items: filtered.length,
-          data,
-        };
-      }),
-    );
+    return this.http.get<GetHeroesResponse>(this.apiUrl, { params });
   }
 
-  // Obtener un heroe por id
-  getHeroById(heroId: string): Observable<Hero> {
-    return this.http.get<Hero>(`${this.apiUrl}/${heroId}`);
+  // Obtener un heroe por slug
+  getHeroBySlug(heroSlug: string): Observable<Hero> {
+    return this.http.get<Hero>(`${this.apiUrl}/${heroSlug}`);
   }
 
   // Grabar un nuevo heroe en la db
@@ -72,20 +47,20 @@ export class HeroesService {
     return this.http.post<NewHeroResponse>(this.apiUrl, newHero);
   }
 
-  // Editar un heroe por un id dado
-  editHero(heroId: string, hero: Hero): Observable<Hero> {
-    return this.http.put<Hero>(`${this.apiUrl}/${heroId}`, hero);
+  // Subir la imagen de un heroe por su slug: envia el archivo crudo como binario (max 1 MB en el backend)
+  uploadHeroImage(heroSlug: string, file: File): Observable<UploadImageResponse> {
+    return this.http.post<UploadImageResponse>(`${this.apiUrl}/${heroSlug}/image`, file, {
+      headers: new HttpHeaders({ 'Content-Type': file.type }),
+    });
   }
 
-  // Eliminar un heroe de la db por un id dado
-  deleteHero(heroId: string): Observable<Hero> {
-    return this.http.delete<Hero>(`${this.apiUrl}/${heroId}`);
+  // Editar un heroe por su slug: PATCH con semantica parcial (el backend aplica solo los campos presentes)
+  editHero(heroSlug: string, hero: Hero): Observable<EditHeroResponse> {
+    return this.http.patch<EditHeroResponse>(`${this.apiUrl}/${heroSlug}`, hero);
   }
 
-  // Resuelve la URL de la imagen para el <img>:
-  // - Si ya es un data URL (imagen subida en base64), se usa tal cual.
-  // - Si es un nombre de archivo (ej: "1.jpeg"), se antepone la carpeta de imágenes.
-  private resolveImage(image: string): string {
-    return image.startsWith('data:') ? image : `images/${image}`;
+  // Eliminar un heroe de la db por su slug
+  deleteHero(heroSlug: string): Observable<DeleteHeroResponse> {
+    return this.http.delete<DeleteHeroResponse>(`${this.apiUrl}/${heroSlug}`);
   }
 }

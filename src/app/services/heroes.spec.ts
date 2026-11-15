@@ -1,227 +1,162 @@
-import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { HeroesService } from './heroes';
-import { Hero, HeroesResponsePaginated, NewHeroResponse } from '../interfaces/heroes.interface';
+import {
+  DeleteHeroResponse,
+  EditHeroResponse,
+  GetHeroesResponse,
+  Hero,
+  NewHeroResponse,
+  UploadImageResponse,
+} from '../interfaces/heroes.interface';
+import { environment } from '../environments/environment';
 
-const mockHero: Hero = {
-  id: '1',
-  name: 'Clark Kent',
-  alias: 'Superman',
-  powers: ['Vuelo'],
-  description: 'Descripción de prueba',
-  team: 'Liga de la Justicia',
-  image: 'superman.jpg',
-  status: 'Active',
-  category: 'Heroe',
-  universe: 'DC',
-};
-
-const makeHero = (id: string, name: string): Hero => ({
-  ...mockHero,
-  id,
-  name,
-});
-
-describe('Heroes', () => {
+describe('HeroesService', () => {
   let service: HeroesService;
-  let httpTesting: HttpTestingController;
+  let httpMock: HttpTestingController;
+
+  const createMockHero = (overrides: Partial<Hero> = {}): Hero => ({
+    _id: '1',
+    slug: 'superman',
+    name: 'Clark Kent',
+    alias: 'Superman',
+    powers: ['Vuelo', 'Super fuerza'],
+    description: 'Descripción de prueba',
+    team: 'Liga de la Justicia',
+    image: '',
+    status: 'Active',
+    category: 'Hero',
+    universe: 'DC',
+    ...overrides,
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(HeroesService);
-    httpTesting = TestBed.inject(HttpTestingController);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    // Asegura que ningún request quedó sin responder
-    httpTesting.verify();
+    httpMock.verify();
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  it('should make a GET request to /api/heroes and return heroes with prefixed image URLs added', () => {
-    let result: Hero[] | undefined;
-    service.getHeroes().subscribe((heroes) => (result = heroes));
-
-    const req = httpTesting.expectOne('/api/heroes');
-    expect(req.request.method).toBe('GET');
-
-    req.flush([mockHero]);
-
-    expect(result).toEqual([{ ...mockHero, image: 'images/superman.jpg' }]);
-  });
-
-  describe('getHeroesPaginated', () => {
-    const heroes = [
-      makeHero('1', 'Spiderman'),
-      makeHero('2', 'Superman'),
-      makeHero('3', 'Manolito el fuerte'),
-      makeHero('4', 'Bruce Wayne'),
-    ];
-
-    it('devuelve solo héroes cuyo nombre contiene el criterio (parcial, case-insensitive y trim)', () => {
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 10, { name: '  MAN ' }).subscribe((r) => (result = r));
-
-      const req = httpTesting.expectOne('/api/heroes');
-      expect(req.request.method).toBe('GET');
-      req.flush(heroes);
-
-      expect(result?.items).toBe(3);
-      expect(result?.pages).toBe(1);
-      expect(result?.data.map((h) => h.name)).toEqual([
-        'Spiderman',
-        'Superman',
-        'Manolito el fuerte',
-      ]);
-      expect(result?.next).toBeNull();
-    });
-
-    it('devuelve una lista vacía cuando no hay coincidencias', () => {
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 10, { name: 'thor' }).subscribe((r) => (result = r));
-
-      const req = httpTesting.expectOne('/api/heroes');
-      req.flush([makeHero('1', 'Spiderman')]);
-
-      expect(result?.items).toBe(0);
-      expect(result?.data).toEqual([]);
-      expect(result?.pages).toBe(0);
-    });
-
-    it('devuelve todos los héroes cuando la query está vacía o es solo espacios', () => {
-      const allHeroes = [makeHero('1', 'Spiderman'), makeHero('2', 'Superman')];
-
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 10, { name: '   ' }).subscribe((r) => (result = r));
-
-      const req = httpTesting.expectOne('/api/heroes');
-      req.flush(allHeroes);
-
-      expect(result?.items).toBe(2);
-      expect(result?.data.map((h) => h.id)).toEqual(['1', '2']);
-    });
-
-    it('resuelve las URLs de imagen en los resultados', () => {
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 10, { name: 'spider' }).subscribe((r) => (result = r));
-      const req = httpTesting.expectOne('/api/heroes');
-      req.flush([makeHero('1', 'Spiderman')]);
-
-      expect(result?.data).toEqual([
-        { ...makeHero('1', 'Spiderman'), image: 'images/superman.jpg' },
-      ]);
-    });
-
-    it('pagina el resultado y expone first/prev/next/last/pages', () => {
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 2).subscribe((r) => (result = r));
-
-      const req = httpTesting.expectOne('/api/heroes');
-      req.flush(heroes);
-
-      expect(result?.data.map((h) => h.id)).toEqual(['1', '2']);
-      expect(result?.items).toBe(4);
-      expect(result?.pages).toBe(2);
-      expect(result?.first).toBe(1);
-      expect(result?.prev).toBeNull();
-      expect(result?.next).toBe(2);
-      expect(result?.last).toBe(2);
-    });
-
-    it('aplica también el filtro por alias (coincidencia parcial)', () => {
-      const heroesWithAlias = [
-        { ...makeHero('1', 'Clark Kent'), alias: 'Superman' },
-        { ...makeHero('2', 'Bruce Wayne'), alias: 'Batman' },
-        { ...makeHero('3', 'Diana Prince'), alias: 'Wonder Woman' },
-      ];
-
-      let result: HeroesResponsePaginated | undefined;
-      service.getHeroesPaginated(1, 10, { alias: 'woman' }).subscribe((r) => (result = r));
-
-      const req = httpTesting.expectOne('/api/heroes');
-      req.flush(heroesWithAlias);
-
-      expect(result?.items).toBe(1);
-      expect(result?.data.map((h) => h.alias)).toEqual(['Wonder Woman']);
-    });
-  });
-
-  it('should make a GET request hero by id and response a Hero', () => {
-    const mockResponse: Partial<Hero> = {
-      name: 'Clark Kent',
-      alias: 'Superman',
-      powers: ['Vuelo'],
-      description: 'Descripción de prueba',
-      team: 'Liga de la Justicia',
-      image: 'superman.jpg',
-      status: 'Active',
-      category: 'Heroe',
-      universe: 'DC',
-    };
-
-    let result: Hero | undefined;
-    service.getHeroById('1').subscribe((resp) => (result = resp));
-
-    const req = httpTesting.expectOne('/api/heroes/1');
-    expect(req.request.method).toBe('GET');
-
-    req.flush(mockResponse);
-
-    expect(result).toEqual({
-      ...mockResponse,
-    });
-  });
-  it('should call add new hero request', () => {
-    const mockHeroResponse: NewHeroResponse = {
-      res: mockHero,
-    };
-
+  it('addNewHero hace POST a /heroes con el héroe en el body', () => {
+    const mockHero = createMockHero();
+    const mockResponse: NewHeroResponse = { msg: 'Hero created correctly.', response: mockHero };
     let result: NewHeroResponse | undefined;
-    service.addNewHero(mockHero).subscribe((resp) => (result = resp));
 
-    const req = httpTesting.expectOne('/api/heroes');
+    service.addNewHero(mockHero).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes`);
     expect(req.request.method).toBe('POST');
-
-    req.flush(mockHeroResponse);
-
-    expect(result).toEqual({
-      ...mockHeroResponse,
-    });
-  });
-  it('should call endponit for edit a hero', () => {
-    const mockResponse: Hero = mockHero;
-
-    let result: Hero | undefined;
-    service.editHero('1', mockHero).subscribe((resp) => (result = resp));
-
-    const req = httpTesting.expectOne('/api/heroes/1');
-    expect(req.request.method).toBe('PUT');
-
+    expect(req.request.body).toEqual(mockHero);
     req.flush(mockResponse);
 
-    expect(result).toEqual({
-      ...mockResponse,
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('getHeroes pagina y filtra: solo viajan los filtros con valor (con trim)', () => {
+    const mockResponse: GetHeroesResponse = {
+      total_pages: 1,
+      current_page: 2,
+      elements_per_page: 25,
+      total_elements: 4,
+      data: [createMockHero()],
+    };
+    let result: GetHeroesResponse | undefined;
+
+    service.getHeroes(2, 25, { name: '  super ', alias: '' }).subscribe((res) => (result = res));
+
+    // alias vacío no viaja; name viaja recortado
+    const req = httpMock.expectOne(
+      `${environment.url}/api/heroes?page=2&elements_per_page=25&name=super`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('getHeroes sin filtros arma solo los params de paginación (los defaults viajan al backend)', () => {
+    service.getHeroes(1, 10).subscribe();
+
+    const req = httpMock.expectOne(
+      `${environment.url}/api/heroes?page=1&elements_per_page=10`,
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      total_pages: 1,
+      current_page: 1,
+      elements_per_page: 10,
+      total_elements: 0,
+      data: [],
     });
   });
-  it('should call endpont for delete a hero', () => {
-    const mockResponse: Hero = mockHero;
 
+  it('getHeroBySlug hace GET a /heroes/:slug', () => {
+    const mockHero = createMockHero();
     let result: Hero | undefined;
-    service.deleteHero('1').subscribe((resp) => (result = resp));
 
-    const req = httpTesting.expectOne('/api/heroes/1');
+    service.getHeroBySlug('superman').subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockHero);
+
+    expect(result).toEqual(mockHero);
+  });
+
+  it('editHero hace PATCH a /heroes/:slug con los campos a editar', () => {
+    const edits: Partial<Hero> = { alias: 'Superman Prime', description: 'Nueva descripción' };
+    const mockResponse: EditHeroResponse = {
+      msg: 'Hero modified correctly',
+      response: createMockHero(edits),
+    };
+    let result: EditHeroResponse | undefined;
+
+    service.editHero('superman', { ...createMockHero(), ...edits }).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
+    expect(req.request.method).toBe('PATCH');
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('deleteHero hace DELETE a /heroes/:slug', () => {
+    const mockResponse: DeleteHeroResponse = { msg: 'Hero deleted correctly.' };
+    let result: DeleteHeroResponse | undefined;
+
+    service.deleteHero('superman').subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman`);
     expect(req.request.method).toBe('DELETE');
-
     req.flush(mockResponse);
 
-    expect(result).toEqual({
-      ...mockResponse,
-    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('uploadHeroImage envía el archivo como binario con su Content-Type', () => {
+    const file = new File(['fake'], 'superman.png', { type: 'image/png' });
+    const mockResponse: UploadImageResponse = {
+      msg: 'Image uploaded correctly.',
+      response: createMockHero({ image: 'https://res.cloudinary.com/matiasdev/superman.jpg' }),
+    };
+    let result: UploadImageResponse | undefined;
+
+    service.uploadHeroImage('superman', file).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/superman/image`);
+    expect(req.request.method).toBe('POST');
+    // El body es el archivo crudo, no JSON ni base64
+    expect(req.request.body).toBe(file);
+    expect(req.request.headers.get('Content-Type')).toBe('image/png');
+    req.flush(mockResponse);
+
+    expect(result).toEqual(mockResponse);
   });
 });

@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +24,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 
 import { HeroesService } from '../../../services/heroes';
-import { Hero, NewHeroResponse } from '../../../interfaces/heroes.interface';
+import {
+  EditHeroResponse,
+  Hero,
+  NewHeroResponse,
+  UploadImageResponse,
+} from '../../../interfaces/heroes.interface';
 import {
   CustomUploadImage,
   CustomUploadImageSelection,
@@ -79,6 +92,10 @@ export default class NewHero {
     description: 150,
   };
   readonly reactivePowersWords = signal<string[]>([]);
+  /** Archivo de imagen seleccionado: viaja por signal porque el control image solo lleva el nombre. */
+  private readonly selectedImageFile = signal<File | null>(null);
+  /** Marca que la subida de imagen falló tras crear el héroe (el héroe sí quedó creado). */
+  private readonly imageUploadFailed = signal(false);
 
   constructor() {
     this.buildHeroForm();
@@ -90,6 +107,10 @@ export default class NewHero {
         this.reactivePowersWords.set(heroData.powers);
         if (this.mode() === 'view') {
           this.heroForm.disable();
+        } else if (this.mode() === 'edit') {
+          // name es inmutable en el backend: queda read-only y no viaja en el PATCH
+          // (un control disabled no entra en el form.value).
+          this.heroForm.get('name')?.disable();
         }
       }
     });
@@ -173,21 +194,38 @@ export default class NewHero {
         if (result.isConfirmed) {
           const newHero: Hero = { ...this.heroForm.value };
           newHero.powers = this.reactivePowersWords();
-          const heroId = this.hero()?.id ?? '';
-          const heroesServiceObservable$: Observable<NewHeroResponse | Hero> =
-            this.mode() === 'create'
-              ? this.heroesService.addNewHero(newHero)
-              : this.heroesService.editHero(heroId, newHero);
+          // La imagen no viaja en el JSON (el backend limita ese body a 100 KB): se sube aparte como binario.
+          newHero.image = '';
+          this.imageUploadFailed.set(false);
+
+          const heroSlug = this.hero()?.slug ?? '';
+          const heroesServiceObservable$: Observable<
+            NewHeroResponse | EditHeroResponse | UploadImageResponse
+          > =
+            this.mode() === 'create' ? this.createHero(newHero) : this.editHero(newHero, heroSlug);
           heroesServiceObservable$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
-              Swal.fire({
-                title: I18N.form.saveSuccessTitle,
-                text:
-                  this.mode() === 'create'
-                    ? I18N.form.saveSuccessCreateText
-                    : I18N.form.saveSuccessEditText,
-                icon: 'success',
-              });
+              if (this.imageUploadFailed()) {
+                // El héroe ya quedó creado/editado: solo falló la imagen, que se puede
+                // reintentar desde Editar. Igual se vuelve al listado.
+                Swal.fire({
+                  title: I18N.form.saveErrorTitle,
+                  text:
+                    this.mode() === 'create'
+                      ? I18N.form.saveImageErrorCreateText
+                      : I18N.form.saveImageErrorEditText,
+                  icon: 'warning',
+                });
+              } else {
+                Swal.fire({
+                  title: I18N.form.saveSuccessTitle,
+                  text:
+                    this.mode() === 'create'
+                      ? I18N.form.saveSuccessCreateText
+                      : I18N.form.saveSuccessEditText,
+                  icon: 'success',
+                });
+              }
               this.heroesUtilsService.refreshLoad();
               this.router.navigate(['/heroes']);
             },
@@ -211,6 +249,58 @@ export default class NewHero {
     }
   }
 
+  /**
+   * Crea el héroe con el JSON y, si hay imagen seleccionada, la sube aparte con el slug
+   * de la respuesta. Si la subida falla, se marca el error y se continúa igual: el héroe
+   * ya existe y la imagen se puede reintentar desde Editar.
+   */
+  private createHero(newHero: Hero): Observable<NewHeroResponse | UploadImageResponse> {
+    return this.heroesService.addNewHero(newHero).pipe(
+      switchMap((created) => {
+        const file = this.selectedImageFile();
+        const heroSlug = created.response.slug;
+
+        if (file && heroSlug) {
+          return this.heroesService.uploadHeroImage(heroSlug, file).pipe(
+            catchError(() => {
+              this.imageUploadFailed.set(true);
+              return of(created);
+            }),
+          );
+        }
+        return of(created);
+      }),
+    );
+  }
+
+  /**
+   * Edita el héroe con PATCH por slug y, si el usuario eligió un archivo de imagen nuevo,
+   * lo sube aparte con el slug del response (editar el alias regenera el slug). Si la
+   * subida falla, se marca el error: el héroe ya quedó editado y la imagen se puede
+   * reintentar desde Editar.
+   */
+  private editHero(
+    newHero: Hero,
+    heroSlug: string,
+  ): Observable<EditHeroResponse | UploadImageResponse> {
+    return this.heroesService.editHero(heroSlug, newHero).pipe(
+      switchMap((edited) => {
+        const file = this.selectedImageFile();
+        const newSlug = edited.response.slug;
+
+        if (file && newSlug) {
+          return this.heroesService.uploadHeroImage(newSlug, file).pipe(
+            catchError(() => {
+              this.imageUploadFailed.set(true);
+              return of(edited);
+            }),
+          );
+        }
+        return of(edited);
+      }),
+    );
+  }
+
   cancelSubmit() {
     this.router.navigate(['/heroes']);
   }
@@ -231,6 +321,8 @@ export default class NewHero {
 
   /** Se ejecuta cuando el componente de carga de imagen emite una selección. */
   onImageChanged(selection: CustomUploadImageSelection): void {
-    this.heroForm.get('image')?.setValue(selection.base64 ?? '');
+    // El control solo lleva el nombre (satisface el validador required); el archivo real viaja por signal.
+    this.heroForm.get('image')?.setValue(selection.fileName ?? '');
+    this.selectedImageFile.set(selection.file);
   }
 }
