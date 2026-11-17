@@ -1,42 +1,72 @@
 <mat-card appearance="outlined" class="mb-5 p-4 !shadow-sm rounded-2xl border !border-zinc-200 !bg-white">
   <form [formGroup]="heroForm" class="form-container">
-    <!-- Carga de imagen del Héroe (componente reutilizable) -->
-    <app-custom-upload-image
-      [mode]="mode()"
-      [heroImage]="hero()?.image ?? ''"
-      (selectionChange)="onImageChanged($event)"
-    />
-
-    <div class="grid lg:grid-cols-2 sm:grid-cols-1 gap-4 items-start">
-      <!-- Column 1 -->
+    <!-- Layout de dos columnas: campos a la izquierda, preview de la card a la derecha (lg). -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+      <!-- Columna izquierda: carga de imagen + todos los campos del formulario (la descripción vive acá) -->
       <div class="w-full">
-        <!-- Name Field -->
-        <div class="w-full mb-5">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Nombre</mat-label>
-            <input
-              matInput
-              appTransformTextUppercase
-              id="heroName"
-              formControlName="name"
-              placeholder="Ingrese el nombre del Héroe"
-              (input)="onTextInput($event, 'name')"
-              [errorStateMatcher]="matcher"
-            />
+        <!-- Carga de imagen del Héroe (componente reutilizable) -->
+        <app-custom-upload-image
+          [mode]="mode()"
+          [heroImage]="hero()?.image ?? ''"
+          (selectionChange)="onImageChanged($event)"
+        />
 
-            @if (heroForm.get('name')?.hasError('required')) {
-              <mat-error>El nombre es obligatorio</mat-error>
-            } @else if (heroForm.get('name')?.hasError('maxlength')) {
-              <mat-error
-                >El nombre debe tener un máximo de {{ MAX_LENGTHS['name'] }} caracteres.</mat-error
-              >
-            } @else if (heroForm.get('name')?.value?.length === MAX_LENGTHS['name']) {
-              <mat-hint align="end" class="!text-amber-600"
-                >Límite de caracteres alcanzado</mat-hint
-              >
-            }
-          </mat-form-field>
+        <div class="grid lg:grid-cols-2 sm:grid-cols-1 gap-4 items-start mb-5">
+          <!-- Name Field -->
+          <div class="w-full mb-5">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre</mat-label>
+              <input
+                matInput
+                appTransformTextUppercase
+                id="heroName"
+                formControlName="name"
+                placeholder="Ingrese el nombre del Héroe"
+                (input)="onTextInput($event, 'name')"
+                [errorStateMatcher]="matcher"
+              />
+
+              @if (heroForm.get('name')?.hasError('required')) {
+                <mat-error>El nombre es obligatorio</mat-error>
+              } @else if (heroForm.get('name')?.hasError('maxlength')) {
+                <mat-error
+                  >El nombre debe tener un máximo de {{ MAX_LENGTHS['name'] }} caracteres.</mat-error
+                >
+              } @else if (heroForm.get('name')?.value?.length === MAX_LENGTHS['name']) {
+                <mat-hint align="end" class="!text-amber-600"
+                  >Límite de caracteres alcanzado</mat-hint
+                >
+              }
+            </mat-form-field>
+          </div>
+          <!-- Alias Field -->
+          <div class="w-full mb-5">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Alias</mat-label>
+              <input
+                matInput
+                id="heroAlias"
+                formControlName="alias"
+                placeholder="Ingrese el alias del Héroe"
+                (input)="onTextInput($event, 'alias')"
+                [errorStateMatcher]="matcher"
+              />
+
+              @if (heroForm.get('alias')?.hasError('required')) {
+                <mat-error>El alias es obligatorio</mat-error>
+              } @else if (heroForm.get('alias')?.hasError('maxlength')) {
+                <mat-error
+                  >El alias debe tener un máximo de {{ MAX_LENGTHS['alias'] }} caracteres.</mat-error
+                >
+              } @else if (heroForm.get('alias')?.value?.length === MAX_LENGTHS['alias']) {
+                <mat-hint align="end" class="!text-amber-600"
+                  >Límite de caracteres alcanzado</mat-hint
+                >
+              }
+            </mat-form-field>
+          </div>
         </div>
+
         <div class="grid lg:grid-cols-2 sm:grid-cols-1 gap-4 items-start mb-5">
           <!-- Status Field -->
           <div class="w-full mb-5">
@@ -67,145 +97,193 @@
               </mat-select>
             </mat-form-field>
           </div>
+          <!-- Universe Field -->
+          <div class="w-full">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Universo</mat-label>
+              <input
+                matInput
+                id="heroUniverse"
+                formControlName="universe"
+                placeholder="Ingrese el universo del Héroe (Ejemplo: DC, Marvel)"
+                (input)="onTextInput($event, 'universe')"
+                [errorStateMatcher]="matcher"
+              />
+
+              @if (heroForm.get('universe')?.hasError('required')) {
+                <mat-error>El universo es obligatorio</mat-error>
+              } @else if (heroForm.get('universe')?.hasError('maxlength')) {
+                <mat-error
+                  >El universo debe tener un máximo de
+                  {{ MAX_LENGTHS['universe'] }} caracteres.</mat-error
+                >
+              } @else if (heroForm.get('universe')?.value?.length === MAX_LENGTHS['universe']) {
+                <mat-hint align="end" class="!text-amber-600"
+                  >Límite de caracteres alcanzado</mat-hint
+                >
+              }
+            </mat-form-field>
+          </div>
         </div>
-      </div>
-      <!-- Column 2 -->
-      <div class="w-full">
-        <!-- Alias Field -->
+
+        <!-- Team Field -->
         <div class="w-full mb-5">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Alias</mat-label>
+            <mat-label>Equipo</mat-label>
             <input
               matInput
-              id="heroAlias"
-              formControlName="alias"
-              placeholder="Ingrese el alias del Héroe"
-              (input)="onTextInput($event, 'alias')"
+              id="heroTeam"
+              formControlName="team"
+              placeholder="Ingrese el equipo al que pertenece el Héroe"
+              (input)="onTextInput($event, 'team')"
               [errorStateMatcher]="matcher"
             />
 
-            @if (heroForm.get('alias')?.hasError('required')) {
-              <mat-error>El alias es obligatorio</mat-error>
-            } @else if (heroForm.get('alias')?.hasError('maxlength')) {
+            @if (heroForm.get('team')?.hasError('required')) {
+              <mat-error>El equipo del héroe es obligatorio</mat-error>
+            } @else if (heroForm.get('team')?.hasError('maxlength')) {
               <mat-error
-                >El alias debe tener un máximo de {{ MAX_LENGTHS['alias'] }} caracteres.</mat-error
+                >El equipo del héroe debe tener un máximo de
+                {{ MAX_LENGTHS['team'] }} caracteres.</mat-error
               >
-            } @else if (heroForm.get('alias')?.value?.length === MAX_LENGTHS['alias']) {
-              <mat-hint align="end" class="!text-amber-600"
-                >Límite de caracteres alcanzado</mat-hint
-              >
+            } @else if (heroForm.get('team')?.value?.length === MAX_LENGTHS['team']) {
+              <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
             }
           </mat-form-field>
         </div>
-        <!-- Universe Field -->
+        <!-- Description Field -->
         <div class="w-full mb-5">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Universo</mat-label>
-            <input
+            <mat-label>Descripción</mat-label>
+            <textarea
               matInput
-              id="heroUniverse"
-              formControlName="universe"
-              placeholder="Ingrese el universo del Héroe (Ejemplo: DC, Marvel)"
-              (input)="onTextInput($event, 'universe')"
-              [errorStateMatcher]="matcher"
-            />
+              formControlName="description"
+              placeholder="Escribe una breve descripción del Héroe..."
+              rows="3"
+              (input)="onTextInput($event, 'description')"
+            >
+            </textarea>
 
-            @if (heroForm.get('universe')?.hasError('required')) {
-              <mat-error>El universo es obligatorio</mat-error>
-            } @else if (heroForm.get('universe')?.hasError('maxlength')) {
+            @if (heroForm.get('description')?.hasError('required')) {
+              <mat-error>La descripción del Héroe es obligatoria.</mat-error>
+            } @else if (heroForm.get('description')?.hasError('maxlength')) {
               <mat-error
-                >El universo debe tener un máximo de
-                {{ MAX_LENGTHS['universe'] }} caracteres.</mat-error
+                >La descripción del Héroe debe tener un máximo de
+                {{ MAX_LENGTHS['description'] }} caracteres.</mat-error
               >
-            } @else if (heroForm.get('universe')?.value?.length === MAX_LENGTHS['universe']) {
-              <mat-hint align="end" class="!text-amber-600"
-                >Límite de caracteres alcanzado</mat-hint
-              >
+            } @else if (heroForm.get('description')?.value?.length === MAX_LENGTHS['description']) {
+              <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
             }
           </mat-form-field>
         </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 items.start">
-      <!-- Team Field -->
-      <div class="w-full mb-5">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Equipo</mat-label>
-          <input
-            matInput
-            id="heroTeam"
-            formControlName="team"
-            placeholder="Ingrese el equipo al que pertenece el Héroe"
-            (input)="onTextInput($event, 'team')"
-            [errorStateMatcher]="matcher"
-          />
-
-          @if (heroForm.get('team')?.hasError('required')) {
-            <mat-error>El equipo del héroe es obligatorio</mat-error>
-          } @else if (heroForm.get('team')?.hasError('maxlength')) {
-            <mat-error
-              >El equipo del héroe debe tener un máximo de
-              {{ MAX_LENGTHS['team'] }} caracteres.</mat-error
-            >
-          } @else if (heroForm.get('team')?.value?.length === MAX_LENGTHS['team']) {
-            <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
-          }
-        </mat-form-field>
-      </div>
-      <!-- Description Field -->
-      <div class="w-full mb-5">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Descripción</mat-label>
-          <textarea
-            matInput
-            formControlName="description"
-            placeholder="Escribe una breve descripción del Héroe..."
-            rows="3"
-            (input)="onTextInput($event, 'description')"
-          >
-          </textarea>
-
-          @if (heroForm.get('description')?.hasError('required')) {
-            <mat-error>La descripción del Héroe es obligatoria.</mat-error>
-          } @else if (heroForm.get('description')?.hasError('maxlength')) {
-            <mat-error
-              >La descripción del Héroe debe tener un máximo de
-              {{ MAX_LENGTHS['description'] }} caracteres.</mat-error
-            >
-          } @else if (heroForm.get('description')?.value?.length === MAX_LENGTHS['description']) {
-            <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
-          }
-        </mat-form-field>
-      </div>
-      <!-- Powers Field -->
-      <label for="heroPowers" class="block text-m text-zinc-600 font-medium mb-1"
-        >Poderes</label
-      >
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-chip-grid
-          #reactiveChipGrid
-          aria-label="Ingrese los poderes del Héroe"
-          formControlName="powers"
+        <!-- Powers Field -->
+        <label for="heroPowers" class="block text-m text-zinc-600 font-medium mb-1"
+          >Poderes</label
         >
-          @for (power of reactivePowersWords(); track $index) {
-            <mat-chip-row (removed)="removeReactivePowers(power)">
-              {{ power }}
-              <button matChipRemove [attr.aria-label]="'Remover el poder ' + power">
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip-row>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-chip-grid
+            #reactiveChipGrid
+            aria-label="Ingrese los poderes del Héroe"
+            formControlName="powers"
+          >
+            @for (power of reactivePowersWords(); track $index) {
+              <mat-chip-row (removed)="removeReactivePowers(power)">
+                {{ power }}
+                <button matChipRemove [attr.aria-label]="'Remover el poder ' + power">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            }
+          </mat-chip-grid>
+          @if (mode() !== 'view') {
+            <input
+              id="heroPowers"
+              placeholder="Nuevo poder..."
+              [matChipInputFor]="reactiveChipGrid"
+              (matChipInputTokenEnd)="addReactivePowers($event)"
+            />
           }
-        </mat-chip-grid>
-        @if (mode() !== 'view') {
-          <input
-            id="heroPowers"
-            placeholder="Nuevo poder..."
-            [matChipInputFor]="reactiveChipGrid"
-            (matChipInputTokenEnd)="addReactivePowers($event)"
-          />
-        }
-      </mat-form-field>
+        </mat-form-field>
+      </div>
+
+      <!-- Columna derecha: panel de preview con la receta de card del proyecto.
+           En lg estira hasta la altura de la columna izquierda; la imagen crece (flex-1)
+           con un mínimo para mobile, donde el panel apila debajo del formulario. -->
+      <div
+        data-testid="hero-preview-panel"
+        class="w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm flex flex-col lg:h-full"
+      >
+        <!-- Imagen grande con los overlays superiores de la card del catálogo -->
+        <div class="relative w-full flex-1 min-h-80 overflow-hidden bg-zinc-100">
+          @if (previewImage()) {
+            <img
+              data-testid="preview-image"
+              [src]="previewImage()"
+              [alt]="'Previsualización de ' + (previewData().alias || 'el Héroe')"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          } @else {
+            <div
+              data-testid="preview-placeholder"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-2"
+            >
+              <mat-icon
+                class="text-zinc-400"
+                [style.fontSize.px]="48"
+                [style.width.px]="48"
+                [style.height.px]="48"
+                >image</mat-icon
+              >
+              <span class="text-sm text-zinc-500">Ninguna imagen seleccionada</span>
+            </div>
+          }
+
+          <!-- Dot de estado + pill Active/Inactive (arriba a la izquierda) -->
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <div
+              class="h-3 w-3 rounded-full"
+              [class]="previewData().status === 'Active' ? 'bg-green-500' : 'bg-red-500'"
+            ></div>
+            <div
+              class="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-700 shadow-sm"
+            >
+              {{ previewData().status }}
+            </div>
+          </div>
+
+          <!-- Badge de universo (arriba a la derecha) -->
+          <div class="absolute top-3 right-3">
+            <div
+              class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
+            >
+              {{ previewData().universe || '—' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Info inferior de la card: alias, nombre real, chip de categoría y chip de equipo.
+             Sobre fondo blanco (mismo contraste que la card del catálogo) con borde superior. -->
+        <div class="p-4 border-t border-zinc-200">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <h2 class="text-xl font-bold text-violet-950 leading-tight">
+                {{ previewData().alias || '—' }}
+              </h2>
+              <p class="text-sm text-zinc-500">{{ previewData().name || '—' }}</p>
+            </div>
+            <div class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+              {{ previewData().category || '—' }}
+            </div>
+          </div>
+
+          <!-- Team -->
+          <div
+            class="mt-3 inline-block w-fit rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700"
+          >
+            {{ previewData().team || '—' }}
+          </div>
+        </div>
+      </div>
     </div>
   </form>
 

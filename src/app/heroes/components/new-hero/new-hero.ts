@@ -2,14 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
   signal,
+  Signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, of, switchMap, catchError } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -96,9 +98,59 @@ export default class NewHero {
   private readonly selectedImageFile = signal<File | null>(null);
   /** Marca que la subida de imagen falló tras crear el héroe (el héroe sí quedó creado). */
   private readonly imageUploadFailed = signal(false);
+  /** URL local (object URL) de la imagen seleccionada para el preview; se revoca al reemplazarla. */
+  private previewObjectUrl: string | null = null;
+  /** Imagen local del preview: object URL del archivo seleccionado (vacío si no hay selección). */
+  private readonly localPreviewImage = signal('');
+  /**
+   * Imagen del panel de preview: la selección local tiene prioridad; si no hay, la imagen
+   * existente del héroe (edit/view). En create sin selección queda vacía (placeholder).
+   */
+  readonly previewImage = computed(
+    () => this.localPreviewImage() || this.hero()?.image || '',
+  );
+  /** Cambios del formulario como signal: dependencia reactiva de los overlays en modo create. */
+  private formValueChanges: Signal<unknown>;
+  /**
+   * Valores de los overlays del preview: en create derivan en vivo del formulario; en
+   * edit/view del héroe recibido (el formulario viene precargado o deshabilitado).
+   */
+  readonly previewData = computed(() => {
+    const hero = this.hero();
+    if (hero) {
+      return {
+        alias: hero.alias,
+        name: hero.name,
+        category: hero.category,
+        team: hero.team,
+        status: hero.status,
+        universe: hero.universe,
+      };
+    }
+    // Dependencia reactiva: recalcula cuando cambia cualquier valor del formulario.
+    this.formValueChanges();
+    const raw = this.heroForm.getRawValue();
+    return {
+      alias: raw.alias ?? '',
+      name: raw.name ?? '',
+      category: raw.category ?? '',
+      team: raw.team ?? '',
+      status: raw.status ?? 'Active',
+      universe: raw.universe ?? '',
+    };
+  });
 
   constructor() {
     this.buildHeroForm();
+    // El FormGroup se reconstruye en buildHeroForm: la suscripción reactiva se crea
+    // después para no quedar colgada del FormGroup vacío inicial.
+    this.formValueChanges = toSignal(this.heroForm.valueChanges, { initialValue: null });
+    // La URL local del preview se libera al destruir el componente.
+    this.destroyRef.onDestroy(() => {
+      if (this.previewObjectUrl) {
+        URL.revokeObjectURL(this.previewObjectUrl);
+      }
+    });
     effect(() => {
       const heroData = this.hero();
 
@@ -324,5 +376,23 @@ export default class NewHero {
     // El control solo lleva el nombre (satisface el validador required); el archivo real viaja por signal.
     this.heroForm.get('image')?.setValue(selection.fileName ?? '');
     this.selectedImageFile.set(selection.file);
+    this.updateLocalPreview(selection.file);
+  }
+
+  /**
+   * Actualiza la imagen local del preview con un object URL del archivo seleccionado,
+   * revocando el anterior para liberar memoria. Sin archivo, vuelve a la imagen del héroe.
+   */
+  private updateLocalPreview(file: File | null): void {
+    if (this.previewObjectUrl) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+      this.previewObjectUrl = null;
+    }
+    if (file) {
+      this.previewObjectUrl = URL.createObjectURL(file);
+      this.localPreviewImage.set(this.previewObjectUrl);
+    } else {
+      this.localPreviewImage.set('');
+    }
   }
 }
