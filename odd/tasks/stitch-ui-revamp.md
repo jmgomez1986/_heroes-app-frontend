@@ -18,10 +18,10 @@
 
 | ID | Specs | Route | Status | Commit |
 |----|-------|-------|--------|--------|
-| T1 | S1, S4, S6 | delegated (writer A) | pending | — |
-| T2 | S2, S3, S5 | delegated (writer B) | pending | — |
-| T3 | S7, S8 | delegated (writer C) | pending | — |
-| T4 | S8 | inline (parent) | pending | — |
+| T1 | S1, S4, S6 | delegated (writer A) | done | 38ced99 |
+| T2 | S2, S3, S5 | delegated (writer B) | done | 58d868c |
+| T3 | S7, S8 | delegated (writer C) | done | 3ee34ce |
+| T4 | S8 | inline (parent) | done | b7da34b |
 
 ## Log
 
@@ -29,3 +29,4 @@
 - **L2** (2026-11-17): Decisiones de producto confirmadas por el usuario: (1) header sin buscador, (2) sin chips de filtro por ahora, (3) contadores vía endpoint de backend nuevo (usuario puede tocar el backend; contrato en S5). Costo comunicado: bajo/medio, único dato no disponible es el breakdown por categoría.
 - **L3** (2026-11-17): Commit previo `513a1f2 style: adopt neutral single-accent design system` — restyle dirección B (base de este feature). El theme ya tiene superficies neutras + primario violet/azure; los colores del Stitch (indigo-600 #4f46e5) son la misma familia, no se toca el theme.
 - **L4** (2026-11-17): Lanzados 3 writers paralelos con superficies de edición disjuntas (A: shell app.html + componentes shared nuevos; B: página catálogo + stats; C: formulario). Superficie compartida: ninguna (styles.scss solo B). Seam check T4 inline: suite completa + build al final.
+- **L5** (2026-11-17): Seam check T4 completado. Corrección importante: writer A reportó que Tailwind v4.3 rechaza el prefijo `!` legacy y usó sufijo (`bg-indigo-600!`) en header/footer/breadcrumb. Verificación empírica del parent contra el build real (grep del dist CSS) demostró lo contrario: la forma prefijo (`!bg-green-600`) SÍ genera CSS (`.\\!bg-*`) y la sufijo NO se genera en esta configuración. Se revirtieron las 3 clases sufijo del writer A a la convención prefijo del proyecto (commit incluido en 38ced99... corrección aplicada antes de los commits de unidad). Suite completa final: 19 archivos / 151 tests en verde, coverage 94.18% stmts. Commits: 38ced99 (shell), 58d868c (catálogo), 3ee34ce (form), b7da34b (docs). Pendiente del usuario: implementar GET /heroes/stats en el backend con el contrato de S5; revisión visual con ng serve.
