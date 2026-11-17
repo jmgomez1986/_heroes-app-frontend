@@ -1,4 +1,4 @@
-<mat-card class="overflow-hidden !shadow-xl flex h-full" appearance="outlined">
+<mat-card class="overflow-hidden !shadow-sm rounded-2xl border !border-zinc-200 !bg-white flex h-full" appearance="outlined">
   <mat-card-content class="p-0 flex-1">
     <!-- Image Container -->
     <div class="relative aspect-[3/4] w-full overflow-hidden">
@@ -15,7 +15,7 @@
           [class]="hero().status === 'Active' ? 'bg-green-500' : 'bg-red-500'"
         ></div>
         <div
-          class="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-gray-700 shadow-sm"
+          class="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-700 shadow-sm"
         >
           {{ hero().status }}
         </div>
@@ -23,7 +23,7 @@
 
       <div class="absolute top-3 right-3">
         <div
-          class="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
+          class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
         >
           {{ hero().universe }}
         </div>
@@ -35,8 +35,8 @@
       <!-- Name and Category -->
       <div class="flex justify-between items-start">
         <div>
-          <h2 class="text-xl font-bold text-gray-900 leading-tight">{{ hero().alias }}</h2>
-          <p class="text-sm text-gray-500">{{ hero().name }}</p>
+          <h2 class="text-xl font-bold text-violet-950 leading-tight">{{ hero().alias }}</h2>
+          <p class="text-sm text-zinc-500">{{ hero().name }}</p>
           <!-- Alias placeholder -->
         </div>
         <div class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
@@ -46,13 +46,13 @@
 
       <!-- Team -->
       <div
-        class="inline-block w-fit rounded bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-700"
+        class="inline-block w-fit rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700"
       >
         {{ hero().team }}
       </div>
 
       <!-- Description -->
-      <p class="text-sm text-gray-600 leading-relaxed line-clamp-3">
+      <p class="text-sm text-zinc-600 leading-relaxed line-clamp-3">
         {{ hero().description }}
       </p>
 
@@ -75,16 +75,7 @@
   <mat-card-actions class="!flex !flex-col sm:!flex-row gap-2 w-full !p-2">
     <button
       matButton="elevated"
-      class="w-full sm:flex-1 !bg-red-400 !text-white"
-      aria-label="Eliminar héroe"
-      (click)="deleteHero()"
-    >
-      <mat-icon>delete</mat-icon>
-      Eliminar
-    </button>
-    <button
-      matButton="elevated"
-      class="w-full sm:flex-1 !bg-green-400 !text-white"
+      class="w-full sm:flex-1 !bg-green-600 !text-white"
       aria-label="Ver héroe"
       (click)="viewHero()"
     >
@@ -93,12 +84,21 @@
     </button>
     <button
       matButton="elevated"
-      class="w-full sm:flex-1 !bg-indigo-400 !text-white"
+      class="w-full sm:flex-1 !bg-white !text-indigo-700 !border !border-indigo-300"
       aria-label="Editar héroe"
       (click)="editHero()"
     >
       <mat-icon>edit</mat-icon>
       Editar
+    </button>
+    <button
+      matButton="elevated"
+      class="w-full sm:flex-1 !bg-red-600 !text-white"
+      aria-label="Eliminar héroe"
+      (click)="deleteHero()"
+    >
+      <mat-icon>delete</mat-icon>
+      Eliminar
     </button>
   </mat-card-actions>
 </mat-card>

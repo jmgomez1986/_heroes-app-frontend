@@ -1,12 +1,11 @@
-<div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
+<div class="min-h-screen bg-zinc-50">
   <div class="max-w-7xl mx-auto p-6">
     <div class="text-left mb-8">
-      <h1
-        class="text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4"
-      >
+      <h1 class="text-5xl font-bold bg-linear-to-r from-violet-700 to-indigo-600 bg-clip-text text-transparent mb-3">
         {{ mode() === 'edit' ? 'Editar Héroe' : 'Ver Héroe' }}
       </h1>
-      <p class="text-gray-600 text-lg">
+      <div class="h-1.5 w-24 rounded-full bg-linear-to-r from-indigo-600 to-violet-500 mb-4"></div>
+      <p class="text-zinc-600 text-lg">
         {{
           mode() === 'edit'
             ? 'Modifica un héroe o villano del catálogo.'

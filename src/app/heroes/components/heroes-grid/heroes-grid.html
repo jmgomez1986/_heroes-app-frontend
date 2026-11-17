@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
+<div class="min-h-screen">
   <div class="max-w-7xl mx-auto pt-6">
     <!-- Los filtros siempre estan visibles: hidratados desde la URL y escritos en ella al aplicar -->
     <app-filters
@@ -8,7 +8,7 @@
 
     <!-- Cuando hay error del GET, el detalle va en el SweetAlert: la grilla muestra el estado vacío -->
     @if (heroesResource.error()) {
-      <div class="col-span-full text-center text-gray-500 py-10">
+      <div class="col-span-full text-center text-zinc-500 py-10">
         No se encontraron resultados.
       </div>
     } @else if (heroesResource.isLoading()) {
@@ -24,7 +24,7 @@
             [isPriorityImg]="$index < 3"
           ></app-hero-grid-card>
         } @empty {
-          <div class="col-span-full text-center text-gray-500 py-10">
+          <div class="col-span-full text-center text-zinc-500 py-10">
             No se encontraron resultados.
           </div>
         }

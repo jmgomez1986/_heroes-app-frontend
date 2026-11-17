@@ -1,4 +1,4 @@
-<mat-card appearance="outlined" class="mb-5 p-4 !shadow-lg">
+<mat-card appearance="outlined" class="mb-5 p-4 !shadow-sm rounded-2xl border !border-zinc-200 !bg-white">
   <form [formGroup]="heroForm" class="form-container">
     <!-- Carga de imagen del Héroe (componente reutilizable) -->
     <app-custom-upload-image
@@ -43,7 +43,7 @@
             <label
               for="heroStatus"
               id="heroStatusLabel"
-              class="block text-m text-blue-gray-300 font-medium mb-1"
+              class="block text-m text-zinc-600 font-medium mb-1"
               >Estado</label
             >
 
@@ -179,7 +179,7 @@
         </mat-form-field>
       </div>
       <!-- Powers Field -->
-      <label for="heroPowers" class="block text-m text-blue-gray-300 font-medium mb-1"
+      <label for="heroPowers" class="block text-m text-zinc-600 font-medium mb-1"
         >Poderes</label
       >
       <mat-form-field appearance="outline" class="w-full">

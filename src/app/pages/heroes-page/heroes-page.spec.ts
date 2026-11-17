@@ -66,7 +66,7 @@ describe('HeroesPage', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
 
-    (fixture.nativeElement.querySelector('h1') as HTMLElement).click();
+    (fixture.nativeElement.querySelector('h1 button') as HTMLElement).click();
     await flushMicrotasks();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
@@ -78,7 +78,7 @@ describe('HeroesPage', () => {
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
 
-    (fixture.nativeElement.querySelector('h1') as HTMLElement).click();
+    (fixture.nativeElement.querySelector('h1 button') as HTMLElement).click();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
     // Con la URL limpia el navigate es un no-op: el refresco forzado re-dispara el GET

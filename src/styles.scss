@@ -4,16 +4,19 @@
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
-@use 'tailwindcss';
+// Entry de Tailwind v4 en CSS plano: el preprocesador de Tailwind solo entiende
+// CSS, y el IntelliSense detecta el proyecto por este archivo (el @use de Sass
+// en .scss no lo detecta: ver tailwindcss-intellisense #1154/#1451).
+@use './tailwind.css';
 
 html {
   height: 100%;
-  color-scheme: dark;
+  color-scheme: light;
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: mat.$violet-palette,
+        tertiary: mat.$azure-palette,
       ),
       typography: (
         plain-family: Roboto,
@@ -22,6 +25,23 @@ html {
       density: 0,
     )
   );
+
+  // Neutral surface tokens: mat.theme derives surface colors from the primary
+  // palette hue, which tinted cards, form fields and inputs violet/pink.
+  // Pin them to neutral zinc values so surfaces stay clean and only the
+  // accent (buttons, links, focus) carries hue.
+  @include mat.theme-overrides((
+    surface: #ffffff,
+    surface-dim: #fafafa,
+    surface-bright: #ffffff,
+    surface-container-lowest: #ffffff,
+    surface-container-low: #fafafa,
+    surface-container: #f4f4f5,
+    surface-container-high: #fafafa,
+    surface-container-highest: #f4f4f5,
+    outline: #a1a1aa,
+    outline-variant: #e4e4e7,
+  ));
 
   // Overrides de tokens de Angular Material, centralizados en el theme con la
   // API documentada (guia theming > "Component Tokens"). Los nombres van sin

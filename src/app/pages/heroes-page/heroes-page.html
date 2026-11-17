@@ -1,18 +1,28 @@
-<div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
+<div class="min-h-screen bg-zinc-50">
   <div class="max-w-7xl mx-auto p-6">
     <div class="text-center mb-8">
       <h1
-        class="text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 pb-2 leading-tight cursor-pointer"
-        (click)="goToCatalogHome()"
-        title="Volver al inicio del catálogo"
+        class="text-5xl font-bold bg-linear-to-r from-violet-700 to-indigo-600 bg-clip-text text-transparent mb-3 pb-2 leading-tight"
       >
-        Catálogo de Superhéroes
+        <button
+          type="button"
+          class="cursor-pointer bg-transparent border-none p-0"
+          (click)="goToCatalogHome()"
+          title="Volver al inicio del catálogo"
+        >
+          <span class="bg-linear-to-r from-violet-700 to-indigo-600 bg-clip-text text-transparent">
+            Catálogo de Superhéroes
+          </span>
+        </button>
       </h1>
-      <p class="text-gray-600 text-lg">Descubre, explora y administra superhéroes y villanos</p>
+      <div class="h-1.5 w-24 rounded-full bg-linear-to-r from-indigo-600 to-violet-500 mx-auto mb-4"></div>
+      <p class="text-zinc-600 text-lg">Descubre, explora y administra superhéroes y villanos</p>
     </div>
 
     <div>
-      <button matButton="filled" (click)="navigateToNewHero()">Agregar un nuevo héroe</button>
+      <button matButton="filled" (click)="navigateToNewHero()">
+        Agregar un nuevo héroe
+      </button>
       <app-heroes-grid></app-heroes-grid>
     </div>
   </div>
