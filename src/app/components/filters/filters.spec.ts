@@ -116,6 +116,24 @@ describe('Filters', () => {
     });
   });
 
+  describe('expansion panel (S2)', () => {
+    it('los inputs viven dentro de un mat-expansion-panel expandido por defecto', async () => {
+      const panel = fixture.nativeElement.querySelector('mat-expansion-panel');
+
+      expect(panel).not.toBeNull();
+      // MatExpansionPanel marca el host con .mat-expanded cuando está abierto.
+      expect(panel.classList).toContain('mat-expanded');
+      expect(panel.querySelector('#heroName')).not.toBeNull();
+      expect(panel.querySelector('#heroAlias')).not.toBeNull();
+    });
+
+    it('el encabezado del panel conserva el título Filtros', async () => {
+      const header = fixture.nativeElement.querySelector('mat-expansion-panel-header');
+
+      expect(header?.textContent).toContain('Filtros');
+    });
+  });
+
   describe('límite de caracteres (onTextInput)', () => {
     // Simula un evento 'input' con un target mínimamente tipado (sin 'any').
     const createInputEvent = (

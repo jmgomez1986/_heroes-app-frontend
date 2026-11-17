@@ -55,3 +55,11 @@ export interface UploadImageResponse {
 export interface DeleteHeroResponse {
   msg: string;
 }
+
+// Respuesta del backend con los contadores del catálogo (GET /heroes/stats).
+// Contrato a implementar en el backend (repo aparte): heroes/villanos cuentan por category.
+export interface HeroStats {
+  total: number;
+  heroes: number;
+  villains: number;
+}

@@ -6,6 +6,42 @@
       (filtersChange)="applyFilters($event)"
     ></app-filters>
 
+    <!-- Conteo + paginación en una fila sobre la grilla: el selector de items por página
+         queda arriba (sin scroll para cambiarlo). El pill se oculta mientras carga y en
+         error (sin datos que mostrar); el paginador permanece. En mobile la fila envuelve. -->
+    <div
+      data-testid="count-row"
+      class="flex flex-wrap items-center justify-between gap-4 mb-6"
+    >
+      @if (countSummary(); as summary) {
+        <div
+          data-testid="count-pill"
+          class="w-full sm:w-auto inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm text-zinc-600 shadow-sm"
+        >
+          <span class="text-indigo-600 text-lg leading-none">
+            <mat-icon inline>groups</mat-icon>
+          </span>
+          <span>
+            Mostrando <strong class="font-bold text-zinc-900">{{ summary.shown }}</strong> de
+            <strong class="font-bold text-zinc-900">{{ summary.total }}</strong> héroes
+          </span>
+        </div>
+      }
+
+      <!-- El máximo de opciones respeta siempre el límite del backend (MAX_ITEMS_PER_PAGE).
+           hasValue() evita leer value() en estado de error: leerlo ahí lanza un ResourceValueError. -->
+      <mat-paginator
+        class="ml-auto"
+        aria-label="Seleccionar página"
+        [pageIndex]="currentPage() - 1"
+        [length]="heroesResource.hasValue() ? heroesResource.value().total_elements : 0"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
+        (page)="handlePageEvent($event)"
+      >
+      </mat-paginator>
+    </div>
+
     <!-- Cuando hay error del GET, el detalle va en el SweetAlert: la grilla muestra el estado vacío -->
     @if (heroesResource.error()) {
       <div class="col-span-full text-center text-zinc-500 py-10">
@@ -31,16 +67,4 @@
       </div>
     }
   </div>
-
-  <!-- El máximo de opciones respeta siempre el límite del backend (MAX_ITEMS_PER_PAGE).
-       hasValue() evita leer value() en estado de error: leerlo ahí lanza un ResourceValueError. -->
-  <mat-paginator
-    aria-label="Seleccionar página"
-    [pageIndex]="currentPage() - 1"
-    [length]="heroesResource.hasValue() ? heroesResource.value().total_elements : 0"
-    [pageSize]="pageSize()"
-    [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
-    (page)="handlePageEvent($event)"
-  >
-  </mat-paginator>
 </div>

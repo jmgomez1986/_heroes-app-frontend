@@ -14,7 +14,7 @@ import { AbstractControl, FormControl, ReactiveFormsModule, Validators } from '@
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatInputModule } from '@angular/material/input';
 import { HeroErrorStateMatcher } from '../../shared/error-state-matcher';
 import { HeroesUtilsService } from '../../services/heroes-utils';
@@ -28,7 +28,7 @@ import { Filters as FiltersQuery } from '../../interfaces/heroes.interface';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatCardModule,
+    MatExpansionModule,
     MatIconModule,
   ],
   templateUrl: './filters.html',

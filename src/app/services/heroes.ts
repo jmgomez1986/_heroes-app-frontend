@@ -10,6 +10,7 @@ import {
   NewHeroResponse,
   UploadImageResponse,
   DeleteHeroResponse,
+  HeroStats,
 } from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
@@ -40,6 +41,12 @@ export class HeroesService {
   // Obtener un heroe por slug
   getHeroBySlug(heroSlug: string): Observable<Hero> {
     return this.http.get<Hero>(`${this.apiUrl}/${heroSlug}`);
+  }
+
+  // Contadores del catálogo (GET /heroes/stats). El endpoint puede no existir
+  // todavía: el consumidor degrada con gracia ocultando la sección (ver HeroesPage).
+  getStats(): Observable<HeroStats> {
+    return this.http.get<HeroStats>(`${this.apiUrl}/stats`);
   }
 
   // Grabar un nuevo heroe en la db

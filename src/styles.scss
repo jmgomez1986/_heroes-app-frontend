@@ -69,6 +69,13 @@ body {
   height: 100%;
 }
 
+// Se oculta el label de rango interno del paginador ("0 - 9 de 42", primera etiqueta
+// dentro de .mat-mdc-paginator-range-actions). Es redundante con el pill de conteo
+// "Mostrando X de Y héroes" de la fila sobre la grilla (ver heroes-grid.html).
+.mat-mdc-paginator .mat-mdc-paginator-range-label {
+  display: none;
+}
+
 /* Estilos para SweetAlert el !important es necesario
    porque SweetAlert aplica sus propios estilos con alta especificidad.
 */

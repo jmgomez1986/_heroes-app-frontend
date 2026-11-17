@@ -1,11 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of, throwError } from 'rxjs';
 
 import HeroesPage from './heroes-page';
 import { HeroesService } from '../../services/heroes';
-import { HeroesUtilsService } from '../../services/heroes-utils';
-import { GetHeroesResponse } from '../../interfaces/heroes.interface';
+import { GetHeroesResponse, HeroStats } from '../../interfaces/heroes.interface';
 
 const createMockResponse = (): GetHeroesResponse => ({
   total_pages: 1,
@@ -15,18 +14,26 @@ const createMockResponse = (): GetHeroesResponse => ({
   data: [],
 });
 
-// Fake del servicio: la página monta el grid completo, que consulta en el arranque.
-const heroesServiceMock = { getHeroes: vi.fn().mockReturnValue(of(createMockResponse())) };
+const createMockStats = (): HeroStats => ({ total: 42, heroes: 30, villains: 12 });
+
+// Fake del servicio: la página monta el grid completo (que consulta en el arranque)
+// y ahora también consulta GET /heroes/stats para la sección de contadores.
+const heroesServiceMock = {
+  getHeroes: vi.fn().mockReturnValue(of(createMockResponse())),
+  getStats: vi.fn(),
+};
 
 describe('HeroesPage', () => {
-  let component: HeroesPage;
-  let fixture: ComponentFixture<HeroesPage>;
-  let router: Router;
-  let heroesUtilsService: HeroesUtilsService;
-  // Snapshot mutable: cada test define los query params "actuales" de la URL.
+  // Fuente de query params "actual" para el ActivatedRoute fake que consume el grid.
   const snapshotQueryParams: Record<string, string> = {};
 
   const flushMicrotasks = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+  const createFixture = async (): Promise<ComponentFixture<HeroesPage>> => {
+    const fixture = TestBed.createComponent(HeroesPage);
+    await fixture.whenStable();
+    return fixture;
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -43,12 +50,6 @@ describe('HeroesPage', () => {
         },
       ],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(HeroesPage);
-    component = fixture.componentInstance;
-    router = TestBed.inject(Router);
-    heroesUtilsService = TestBed.inject(HeroesUtilsService);
-    await fixture.whenStable();
   });
 
   afterEach(() => {
@@ -57,31 +58,43 @@ describe('HeroesPage', () => {
     delete snapshotQueryParams['alias'];
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    heroesServiceMock.getStats.mockReturnValue(of(createMockStats()));
+    const fixture = await createFixture();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('el título con URL con filtros navega a /heroes sin query params (la grilla re-consulta sola)', async () => {
-    snapshotQueryParams['name'] = 'super';
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
+  it('muestra la sección de stats con el contrato del backend (total + chips por categoría)', async () => {
+    heroesServiceMock.getStats.mockReturnValue(of(createMockStats()));
+    const fixture = await createFixture();
 
-    (fixture.nativeElement.querySelector('h1 button') as HTMLElement).click();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Total de personajes');
+    expect(host.textContent).toContain('42');
+    expect(host.textContent).toContain('30 Héroes');
+    expect(host.textContent).toContain('12 Villanos');
+  });
+
+  it('si GET /heroes/stats falla (endpoint inexistente), la sección de stats se oculta sin error visible', async () => {
+    heroesServiceMock.getStats.mockReturnValueOnce(throwError(() => new Error('endpoint pendiente')));
+    const fixture = await createFixture();
     await flushMicrotasks();
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
-    // La limpieza de la URL ya dispara el GET: no hace falta forzar el refresco
-    expect(refreshSpy).not.toHaveBeenCalled();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).not.toContain('Total de personajes');
+    // La página sigue viva: el resto del catálogo renderiza normalmente.
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('el título con URL ya limpia navega a /heroes y fuerza el refresco del GET', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    const refreshSpy = vi.spyOn(heroesUtilsService, 'refreshLoad');
+  it('la página ya no renderiza el título centrado ni el botón de nuevo héroe (viven en el header)', async () => {
+    heroesServiceMock.getStats.mockReturnValue(of(createMockStats()));
+    const fixture = await createFixture();
 
-    (fixture.nativeElement.querySelector('h1 button') as HTMLElement).click();
-
-    expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
-    // Con la URL limpia el navigate es un no-op: el refresco forzado re-dispara el GET
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('h1')).toBeNull();
+    expect(host.textContent).not.toContain('Catálogo de Superhéroes');
+    expect(host.textContent).not.toContain('Agregar un nuevo héroe');
+    expect(host.textContent).not.toContain('Descubre, explora y administra');
   });
 });

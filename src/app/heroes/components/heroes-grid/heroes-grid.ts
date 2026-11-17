@@ -89,6 +89,15 @@ export class HeroesGrid {
   /** Límite del backend expuesto al template para las opciones del paginador. */
   protected readonly maxItemsPerPage = MAX_ITEMS_PER_PAGE;
 
+  /** Pill "Mostrando X de Y héroes": X = items de la página actual, Y = total del backend.
+   * undefined mientras carga o en error (el pill se oculta en esos estados).
+   * hasValue() evita leer value() en estado de error: leerlo ahí lanza un ResourceValueError. */
+  readonly countSummary = computed<{ shown: number; total: number } | undefined>(() => {
+    if (!this.heroesResource.hasValue() || this.heroesResource.isLoading()) return undefined;
+    const resp = this.heroesResource.value();
+    return { shown: resp.data.length, total: resp.total_elements };
+  });
+
   /**
    * El resource delega en el servicio: este arma los query params de paginación
    * y filtros (solo los filtros con valor) contra el backend real.
