@@ -682,12 +682,15 @@ describe('NewHero', () => {
       fixture.detectChanges();
 
       const saveButton = getButtonByText('Guardar');
+      const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
       expect(saveButton).toBeTruthy();
       expect(saveButton!.nativeElement.disabled).toBe(false);
-      // type="submit": el click y el Enter disparan (ngSubmit), que es el único camino de guardado.
+      // type="submit" + form="hero-form": el botón vive fuera de la card, pero sigue
+      // asociado al form, así que click y Enter pasan por (ngSubmit). El getter `form`
+      // resuelve la asociación real del DOM: si se pierde el atributo, esto falla.
       expect(saveButton!.nativeElement.getAttribute('type')).toBe('submit');
+      expect(saveButton!.nativeElement.form).toBe(form);
 
-      const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
       form.dispatchEvent(new Event('submit'));
       await flushMicrotasks();
 

@@ -1,175 +1,186 @@
-<form [formGroup]="heroForm" (ngSubmit)="onSubmit()">
-  <mat-card appearance="outlined" class="mb-5 p-4 shadow-sm! rounded-2xl border-zinc-200! bg-white!">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-      <!-- Columna izquierda: todos los campos del formulario (la descripción vive acá) -->
-      <div class="min-w-0 flex flex-col gap-5">
-        <!-- Name Field -->
+<mat-card appearance="outlined" class="mb-5 p-4 shadow-sm! rounded-2xl border-zinc-200! bg-white!">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+    <!-- Columna izquierda: todos los campos del formulario (la descripción vive acá) -->
+    <form
+      id="hero-form"
+      class="min-w-0 flex flex-col gap-5"
+      [formGroup]="heroForm"
+      (ngSubmit)="onSubmit()"
+    >
+      <!-- Name Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nombre</mat-label>
+        <input
+          matInput
+          appTransformTextUppercase
+          id="heroName"
+          formControlName="name"
+          placeholder="Ingrese el nombre del Héroe"
+          (input)="onTextInput($event, 'name')"
+          [errorStateMatcher]="matcher"
+        />
+
+        @if (fieldErrorMessage('name'); as error) {
+          <mat-error>{{ error }}</mat-error>
+        } @else if (showLimitHint('name')) {
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+        }
+      </mat-form-field>
+
+      <!-- Alias Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Alias</mat-label>
+        <input
+          matInput
+          id="heroAlias"
+          formControlName="alias"
+          placeholder="Ingrese el alias del Héroe"
+          (input)="onTextInput($event, 'alias')"
+          [errorStateMatcher]="matcher"
+        />
+
+        @if (fieldErrorMessage('alias'); as error) {
+          <mat-error>{{ error }}</mat-error>
+        } @else if (showLimitHint('alias')) {
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+        }
+      </mat-form-field>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Status Field -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nombre</mat-label>
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="status">
+            @for (status of heroStatus; track status.value) {
+              <mat-option [value]="status.value">{{ status.viewValue }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Category Field -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="category">
+            @for (category of heroCategories; track category.value) {
+              <mat-option [value]="category.value">{{ category.viewValue }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Universe Field -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Universo</mat-label>
           <input
             matInput
-            appTransformTextUppercase
-            id="heroName"
-            formControlName="name"
-            placeholder="Ingrese el nombre del Héroe"
-            (input)="onTextInput($event, 'name')"
+            id="heroUniverse"
+            formControlName="universe"
+            placeholder="Ingrese el universo del Héroe (Ejemplo: DC, Marvel)"
+            (input)="onTextInput($event, 'universe')"
             [errorStateMatcher]="matcher"
           />
 
-          @if (fieldErrorMessage('name'); as error) {
+          @if (fieldErrorMessage('universe'); as error) {
             <mat-error>{{ error }}</mat-error>
-          } @else if (showLimitHint('name')) {
+          } @else if (showLimitHint('universe')) {
             <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
           }
         </mat-form-field>
+      </div>
 
-        <!-- Alias Field -->
+      <!-- Team Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Equipo</mat-label>
+        <input
+          matInput
+          id="heroTeam"
+          formControlName="team"
+          placeholder="Ingrese el equipo al que pertenece el Héroe"
+          (input)="onTextInput($event, 'team')"
+          [errorStateMatcher]="matcher"
+        />
+
+        @if (fieldErrorMessage('team'); as error) {
+          <mat-error>{{ error }}</mat-error>
+        } @else if (showLimitHint('team')) {
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+        }
+      </mat-form-field>
+
+      <!-- Description Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Descripción</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          placeholder="Escribe una breve descripción del Héroe..."
+          rows="3"
+          (input)="onTextInput($event, 'description')"
+        >
+        </textarea>
+
+        @if (fieldErrorMessage('description'); as error) {
+          <mat-error>{{ error }}</mat-error>
+        } @else if (showLimitHint('description')) {
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+        }
+      </mat-form-field>
+
+      <!-- Powers Field -->
+      <div>
+        <label
+          [attr.for]="isView() ? null : 'heroPowers'"
+          class="mb-1 block text-base font-medium text-zinc-600"
+          >Poderes</label
+        >
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Alias</mat-label>
-          <input
-            matInput
-            id="heroAlias"
-            formControlName="alias"
-            placeholder="Ingrese el alias del Héroe"
-            (input)="onTextInput($event, 'alias')"
-            [errorStateMatcher]="matcher"
-          />
-
-          @if (fieldErrorMessage('alias'); as error) {
-            <mat-error>{{ error }}</mat-error>
-          } @else if (showLimitHint('alias')) {
-            <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
-          }
-        </mat-form-field>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- Status Field -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Estado</mat-label>
-            <mat-select formControlName="status">
-              @for (status of heroStatus; track status.value) {
-                <mat-option [value]="status.value">{{ status.viewValue }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <!-- Category Field -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Categoría</mat-label>
-            <mat-select formControlName="category">
-              @for (category of heroCategories; track category.value) {
-                <mat-option [value]="category.value">{{ category.viewValue }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <!-- Universe Field -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Universo</mat-label>
+          <mat-chip-grid
+            #reactiveChipGrid
+            aria-label="Ingrese los poderes del Héroe"
+            formControlName="powers"
+          >
+            @for (power of reactivePowersWords(); track $index) {
+              <mat-chip-row (removed)="removeReactivePowers(power)">
+                {{ power }}
+                <button matChipRemove [attr.aria-label]="'Remover el poder ' + power">
+                  <mat-icon aria-hidden="true">cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            }
+          </mat-chip-grid>
+          @if (!isView()) {
             <input
-              matInput
-              id="heroUniverse"
-              formControlName="universe"
-              placeholder="Ingrese el universo del Héroe (Ejemplo: DC, Marvel)"
-              (input)="onTextInput($event, 'universe')"
-              [errorStateMatcher]="matcher"
+              id="heroPowers"
+              placeholder="Nuevo poder..."
+              [matChipInputFor]="reactiveChipGrid"
+              (matChipInputTokenEnd)="addReactivePowers($event)"
             />
-
-            @if (fieldErrorMessage('universe'); as error) {
-              <mat-error>{{ error }}</mat-error>
-            } @else if (showLimitHint('universe')) {
-              <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
-            }
-          </mat-form-field>
-        </div>
-
-        <!-- Team Field -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Equipo</mat-label>
-          <input
-            matInput
-            id="heroTeam"
-            formControlName="team"
-            placeholder="Ingrese el equipo al que pertenece el Héroe"
-            (input)="onTextInput($event, 'team')"
-            [errorStateMatcher]="matcher"
-          />
-
-          @if (fieldErrorMessage('team'); as error) {
-            <mat-error>{{ error }}</mat-error>
-          } @else if (showLimitHint('team')) {
-            <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
           }
         </mat-form-field>
-
-        <!-- Description Field -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Descripción</mat-label>
-          <textarea
-            matInput
-            formControlName="description"
-            placeholder="Escribe una breve descripción del Héroe..."
-            rows="3"
-            (input)="onTextInput($event, 'description')"
-          >
-          </textarea>
-
-          @if (fieldErrorMessage('description'); as error) {
-            <mat-error>{{ error }}</mat-error>
-          } @else if (showLimitHint('description')) {
-            <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
-          }
-        </mat-form-field>
-
-        <!-- Powers Field -->
-        <div>
-          <label
-            [attr.for]="isView() ? null : 'heroPowers'"
-            class="mb-1 block text-base font-medium text-zinc-600"
-            >Poderes</label
-          >
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-chip-grid
-              #reactiveChipGrid
-              aria-label="Ingrese los poderes del Héroe"
-              formControlName="powers"
-            >
-              @for (power of reactivePowersWords(); track $index) {
-                <mat-chip-row (removed)="removeReactivePowers(power)">
-                  {{ power }}
-                  <button matChipRemove [attr.aria-label]="'Remover el poder ' + power">
-                    <mat-icon aria-hidden="true">cancel</mat-icon>
-                  </button>
-                </mat-chip-row>
-              }
-            </mat-chip-grid>
-            @if (!isView()) {
-              <input
-                id="heroPowers"
-                placeholder="Nuevo poder..."
-                [matChipInputFor]="reactiveChipGrid"
-                (matChipInputTokenEnd)="addReactivePowers($event)"
-              />
-            }
-          </mat-form-field>
-        </div>
       </div>
+    </form>
 
-      <!-- Columna derecha: únicamente el panel de imagen -->
-      <div class="min-w-0 mb-5">
-        <app-load-image-hero
-          [hero]="hero()"
-          [mode]="mode()"
-          (selectionChange)="onImageChanged($event)"
-        ></app-load-image-hero>
-      </div>
+    <!-- Columna derecha: panel de imagen con ALTO FIJO en todos los anchos. Antes el alto solo
+         se aplicaba desde `lg` y por debajo mandaba el aspect-[3/4] del componente: como el
+         aspect-ratio se deriva del ANCHO de la columna, en ventanas angostas el panel salía
+         altísimo y parecía estirarse junto con el form. Si se agrega o quita un campo del
+         formulario, se ajusta este único número. -->
+    <div class="min-w-0 mb-5 h-131">
+      <app-load-image-hero
+        [hero]="hero()"
+        [mode]="mode()"
+        (selectionChange)="onImageChanged($event)"
+      ></app-load-image-hero>
     </div>
-  </mat-card>
-
-  <div class="flex justify-end gap-6">
-    @if (!isView()) {
-      <button matButton="filled" type="submit" [disabled]="heroForm.invalid">Guardar</button>
-    }
-    <button matButton="outlined" type="button" (click)="cancelSubmit()">Cancelar</button>
   </div>
-</form>
+</mat-card>
+
+<!-- Botones fuera de la card pero asociados al form por `form="hero-form"`: el submit
+     (click o Enter) sigue disparando (ngSubmit) sin envolver la card con el form. -->
+<div class="flex justify-end gap-6">
+  @if (!isView()) {
+    <button matButton="filled" type="submit" form="hero-form" [disabled]="heroForm.invalid">
+      Guardar
+    </button>
+  }
+  <button matButton="outlined" type="button" (click)="cancelSubmit()">Cancelar</button>
+</div>
