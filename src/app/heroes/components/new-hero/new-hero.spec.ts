@@ -674,7 +674,7 @@ describe('NewHero', () => {
       expect(Swal.fire).not.toHaveBeenCalled();
     });
 
-    it('Guardar guarda al hacer click con form válido', async () => {
+    it('Guardar envía el formulario (submit) con form válido', async () => {
       fillValidForm();
       mockSwalConfirmation(true);
       const refreshSpy = vi.spyOn(component.heroesUtilsService, 'refreshLoad');
@@ -682,9 +682,16 @@ describe('NewHero', () => {
       fixture.detectChanges();
 
       const saveButton = getButtonByText('Guardar');
+      const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
       expect(saveButton).toBeTruthy();
       expect(saveButton!.nativeElement.disabled).toBe(false);
-      saveButton!.triggerEventHandler('click', null);
+      // type="submit" + form="hero-form": el botón vive fuera de la card, pero sigue
+      // asociado al form, así que click y Enter pasan por (ngSubmit). El getter `form`
+      // resuelve la asociación real del DOM: si se pierde el atributo, esto falla.
+      expect(saveButton!.nativeElement.getAttribute('type')).toBe('submit');
+      expect(saveButton!.nativeElement.form).toBe(form);
+
+      form.dispatchEvent(new Event('submit'));
       await flushMicrotasks();
 
       expect(heroesService.addNewHero).toHaveBeenCalledWith(
@@ -708,4 +715,5 @@ describe('NewHero', () => {
     expect(errorSpy).toHaveBeenCalled();
     expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: I18N.form.saveErrorTitle }));
   });
+
 });

@@ -17,6 +17,12 @@ export interface Hero {
   universe: string;
 }
 
+/**
+ * Payload editable de un héroe: `_id` y `slug` los genera el backend.
+ * En el alta viaja completo; en el PATCH `name` se omite (es inmutable).
+ */
+export type HeroPayload = Omit<Hero, '_id' | 'slug'>;
+
 export interface HeroesGridResourceParams {
   page: number;
   size: number;
@@ -54,4 +60,12 @@ export interface UploadImageResponse {
 // Respuesta real del backend al eliminar un héroe (DELETE /heroes/:slug)
 export interface DeleteHeroResponse {
   msg: string;
+}
+
+// Respuesta real del backend con los contadores del catalogo (GET /heroes/stats).
+// Los totales cuentan por category: total_heroes y total_villains.
+export interface HeroStats {
+  total_elements: number;
+  total_heroes: number;
+  total_villains: number;
 }

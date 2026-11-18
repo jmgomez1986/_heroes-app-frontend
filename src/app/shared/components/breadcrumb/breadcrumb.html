@@ -1,0 +1,24 @@
+<nav aria-label="Miga de pan" class="flex min-w-0 items-center gap-0.5 text-sm">
+  @for (segment of segments(); track $index; let last = $last) {
+    @if (segment.link) {
+      <a
+        [routerLink]="segment.link"
+        class="shrink-0 text-zinc-500 transition-colors hover:text-indigo-600"
+      >
+        {{ segment.label }}
+      </a>
+    } @else {
+      <!-- Segmento actual: aria-current="page" es la marca estándar de breadcrumb para SR. -->
+      <span aria-current="page" class="truncate font-medium text-zinc-900">{{
+        segment.label
+      }}</span>
+    }
+    @if (!last) {
+      <!-- text-[16px]! achica el glifo junto con la caja: el font de Material Icons trae
+           24px fijos y, con la caja en 16px, el glifo se recortaba y quedaba desalineado. -->
+      <mat-icon aria-hidden="true" class="h-4! w-4! text-[16px]! text-zinc-400"
+        >chevron_right</mat-icon
+      >
+    }
+  }
+</nav>

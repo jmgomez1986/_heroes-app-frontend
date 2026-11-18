@@ -1,1 +1,13 @@
-<router-outlet></router-outlet>
+<!-- Shell de la app (S1/S4): columna flex de alto mínimo pantalla para que
+     el footer quede apoyado al final incluso en páginas cortas. -->
+<div class="flex min-h-screen flex-col">
+  <app-header />
+  <main class="flex-1">
+    <!-- Breadcrumb debajo del header, alineado al mismo contenedor que las páginas. -->
+    <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+      <app-breadcrumb />
+    </div>
+    <router-outlet />
+  </main>
+  <app-footer />
+</div>

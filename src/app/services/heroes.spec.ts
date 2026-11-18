@@ -8,6 +8,7 @@ import {
   EditHeroResponse,
   GetHeroesResponse,
   Hero,
+  HeroStats,
   NewHeroResponse,
   UploadImageResponse,
 } from '../interfaces/heroes.interface';
@@ -95,6 +96,19 @@ describe('HeroesService', () => {
       total_elements: 0,
       data: [],
     });
+  });
+
+  it('getStats hace GET a /heroes/stats y devuelve el contrato del backend', () => {
+    const mockStats: HeroStats = { total_elements: 42, total_heroes: 30, total_villains: 12 };
+    let result: HeroStats | undefined;
+
+    service.getStats().subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne(`${environment.url}/api/heroes/stats`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockStats);
+
+    expect(result).toEqual(mockStats);
   });
 
   it('getHeroBySlug hace GET a /heroes/:slug', () => {

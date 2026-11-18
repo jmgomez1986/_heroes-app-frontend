@@ -1,19 +1,11 @@
-<div class="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50">
+<div class="min-h-screen bg-zinc-50">
   <div class="max-w-7xl mx-auto p-6">
-    <div class="text-center mb-8">
-      <h1
-        class="text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 pb-2 leading-tight cursor-pointer"
-        (click)="goToCatalogHome()"
-        title="Volver al inicio del catálogo"
-      >
-        Catálogo de Superhéroes
-      </h1>
-      <p class="text-gray-600 text-lg">Descubre, explora y administra superhéroes y villanos</p>
-    </div>
+    <!-- Contadores del catálogo (GET /heroes/stats): la sección se oculta si el
+         endpoint falla o todavía no existe (degradación silenciosa). -->
+    @if (showStats()) {
+      <app-hero-stats [stats]="statsEntries()"></app-hero-stats>
+    }
 
-    <div>
-      <button matButton="filled" (click)="navigateToNewHero()">Agregar un nuevo héroe</button>
-      <app-heroes-grid></app-heroes-grid>
-    </div>
+    <app-heroes-grid></app-heroes-grid>
   </div>
 </div>
