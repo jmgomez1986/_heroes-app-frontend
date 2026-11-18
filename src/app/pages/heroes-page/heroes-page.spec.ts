@@ -91,14 +91,14 @@ describe('HeroesPage', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('la página ya no renderiza el título centrado ni el botón de nuevo héroe (viven en el header)', async () => {
+  it('renderiza el encabezado con el título del catálogo y no duplica el botón de alta', async () => {
     heroesServiceMock.getStats.mockReturnValue(of(createMockStats()));
     const fixture = await createFixture();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('h1')).toBeNull();
-    expect(host.textContent).not.toContain('Catálogo de Superhéroes');
+    // El título del catálogo vive en la página (el acceso a Home lo da el header).
+    expect(host.querySelector('h1')?.textContent).toContain('Catálogo de Superhéroes');
+    // El alta vive en el CTA del header: la página no repite el botón.
     expect(host.textContent).not.toContain('Agregar un nuevo héroe');
-    expect(host.textContent).not.toContain('Descubre, explora y administra');
   });
 });

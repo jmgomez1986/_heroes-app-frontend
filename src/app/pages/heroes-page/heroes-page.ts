@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -13,7 +14,7 @@ import { HeroStats as HeroStatsDto } from '../../interfaces/heroes.interface';
 @Component({
   selector: 'app-heroes-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HeroesGrid, HeroStats],
+  imports: [HeroesGrid, HeroStats, MatIcon],
   templateUrl: './heroes-page.html',
 })
 
