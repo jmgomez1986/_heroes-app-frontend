@@ -99,7 +99,7 @@ describe('HeroesService', () => {
   });
 
   it('getStats hace GET a /heroes/stats y devuelve el contrato del backend', () => {
-    const mockStats: HeroStats = { total: 42, heroes: 30, villains: 12 };
+    const mockStats: HeroStats = { total_elements: 42, total_heroes: 30, total_villains: 12 };
     let result: HeroStats | undefined;
 
     service.getStats().subscribe((res) => (result = res));

@@ -14,7 +14,11 @@ const createMockResponse = (): GetHeroesResponse => ({
   data: [],
 });
 
-const createMockStats = (): HeroStats => ({ total: 42, heroes: 30, villains: 12 });
+const createMockStats = (): HeroStats => ({
+  total_elements: 42,
+  total_heroes: 30,
+  total_villains: 12,
+});
 
 // Fake del servicio: la página monta el grid completo (que consulta en el arranque)
 // y ahora también consulta GET /heroes/stats para la sección de contadores.

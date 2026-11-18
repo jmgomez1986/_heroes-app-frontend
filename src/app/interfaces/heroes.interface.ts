@@ -56,10 +56,10 @@ export interface DeleteHeroResponse {
   msg: string;
 }
 
-// Respuesta del backend con los contadores del catálogo (GET /heroes/stats).
-// Contrato a implementar en el backend (repo aparte): heroes/villanos cuentan por category.
+// Respuesta real del backend con los contadores del catalogo (GET /heroes/stats).
+// Los totales cuentan por category: total_heroes y total_villains.
 export interface HeroStats {
-  total: number;
-  heroes: number;
-  villains: number;
+  total_elements: number;
+  total_heroes: number;
+  total_villains: number;
 }
