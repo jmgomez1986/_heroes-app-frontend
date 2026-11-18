@@ -14,7 +14,11 @@
       }}</span>
     }
     @if (!last) {
-      <mat-icon aria-hidden="true" class="h-4! w-4! text-zinc-400">chevron_right</mat-icon>
+      <!-- text-[16px]! achica el glifo junto con la caja: el font de Material Icons trae
+           24px fijos y, con la caja en 16px, el glifo se recortaba y quedaba desalineado. -->
+      <mat-icon aria-hidden="true" class="h-4! w-4! text-[16px]! text-zinc-400"
+        >chevron_right</mat-icon
+      >
     }
   }
 </nav>
