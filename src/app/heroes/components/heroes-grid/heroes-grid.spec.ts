@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter, Router } from '@angular/router';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
 
 import { HeroesGrid } from './heroes-grid';
@@ -199,7 +199,7 @@ describe('HeroesGrid', () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  describe('pill de conteo + paginación arriba (S3)', () => {
+  describe('selector de items por página arriba + paginador abajo (S3 corregida)', () => {
     it('muestra el pill con los items de la página actual y el total del backend', async () => {
       const heroB = createMockHero({ _id: '2', slug: 'batman', alias: 'Batman', name: 'Bruce Wayne' });
       heroesService.getHeroes.mockReturnValue(of(createMockResponse({ total_elements: 42, data: [createMockHero(), heroB] })));
@@ -215,15 +215,16 @@ describe('HeroesGrid', () => {
       expect(pill.textContent).toContain('héroes');
     });
 
-    it('oculta el pill mientras la consulta está en curso (el paginador sigue visible)', () => {
+    it('oculta el pill mientras la consulta está en curso (el selector y el paginador siguen visibles)', () => {
       // Observable que nunca emite: simula una carga infinita del GET.
       // whenStable() esperaría al resource pendiente: se detecta manualmente.
-      heroesService.getHeroes.mockReturnValue(new Observable(() => {}));
+      heroesService.getHeroes.mockReturnValue(NEVER);
       component.heroesResource.reload();
       fixture.detectChanges();
 
       const host = fixture.nativeElement as HTMLElement;
       expect(host.querySelector('[data-testid="count-pill"]')).toBeNull();
+      expect(host.querySelector('[data-testid="page-size-selector"]')).not.toBeNull();
       expect(host.querySelector('mat-paginator')).not.toBeNull();
     });
 
@@ -236,12 +237,30 @@ describe('HeroesGrid', () => {
       expect(fixture.nativeElement.querySelector('[data-testid="count-pill"]')).toBeNull();
     });
 
-    it('hay exactamente un paginador y vive en la fila de conteo sobre la grilla', async () => {
+    it('hay exactamente un paginador y queda abajo, fuera del selector superior', async () => {
       const host = fixture.nativeElement as HTMLElement;
+      const countSelector = host.querySelector('app-hero-count-selector')!;
+      const paginator = host.querySelector('mat-paginator')!;
 
       expect(host.querySelectorAll('mat-paginator').length).toBe(1);
-      // La fila de conteo es contenedora del paginador (arriba de la grilla).
-      expect(host.querySelector('[data-testid="count-row"] mat-paginator')).not.toBeNull();
+      // El paginador vive después del selector (abajo de la grilla), no dentro de él.
+      expect(countSelector.contains(paginator)).toBe(false);
+      expect(countSelector.compareDocumentPosition(paginator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('el cambio de tamaño desde el selector vuelve a la página 1 y escribe la URL', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.handlePageSizeChange(25);
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        [],
+        expect.objectContaining({
+          queryParams: { page: 1, elements_per_page: 25 },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        }),
+      );
     });
   });
 });

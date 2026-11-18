@@ -1,17 +1,10 @@
-<mat-expansion-panel
-  class="mb-5 !shadow-sm rounded-2xl border !border-zinc-200 !bg-white overflow-hidden"
-  [expanded]="true"
->
-  <mat-expansion-panel-header>
-    <mat-panel-title class="items-center gap-2 text-indigo-600 text-lg font-medium">
-      <mat-icon>filter_list</mat-icon>
-      <span>Filtros</span>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-
+<mat-card appearance="outlined" class="mb-5 p-4 shadow-sm! rounded-2xl border-zinc-200! bg-white!">
   <div
     class="grid grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 items-center lg:items-start"
   >
+    <div class="row-span-2 flex items-center justify-center text-xl text-indigo-600 font-medium px-2">
+      <span>Filtros</span>
+    </div>
     <!-- Name Filter -->
     <div class="flex flex-col sm:flex-row items-start gap-2 w-full">
       <label
@@ -48,7 +41,7 @@
         }
 
         @if (nameFilter.value?.length === FILTER_MAX_LENGTH) {
-          <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
         }
       </mat-form-field>
     </div>
@@ -88,9 +81,9 @@
         }
 
         @if (aliasFilter.value?.length === FILTER_MAX_LENGTH) {
-          <mat-hint align="end" class="!text-amber-600">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
         }
       </mat-form-field>
     </div>
   </div>
-</mat-expansion-panel>
+</mat-card>

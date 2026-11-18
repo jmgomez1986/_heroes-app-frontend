@@ -30,18 +30,20 @@ html {
   // palette hue, which tinted cards, form fields and inputs violet/pink.
   // Pin them to neutral zinc values so surfaces stay clean and only the
   // accent (buttons, links, focus) carries hue.
-  @include mat.theme-overrides((
-    surface: #ffffff,
-    surface-dim: #fafafa,
-    surface-bright: #ffffff,
-    surface-container-lowest: #ffffff,
-    surface-container-low: #fafafa,
-    surface-container: #f4f4f5,
-    surface-container-high: #fafafa,
-    surface-container-highest: #f4f4f5,
-    outline: #a1a1aa,
-    outline-variant: #e4e4e7,
-  ));
+  @include mat.theme-overrides(
+    (
+      surface: #ffffff,
+      surface-dim: #fafafa,
+      surface-bright: #ffffff,
+      surface-container-lowest: #ffffff,
+      surface-container-low: #fafafa,
+      surface-container: #f4f4f5,
+      surface-container-high: #fafafa,
+      surface-container-highest: #f4f4f5,
+      outline: #a1a1aa,
+      outline-variant: #e4e4e7,
+    )
+  );
 
   // Overrides de tokens de Angular Material, centralizados en el theme con la
   // API documentada (guia theming > "Component Tokens"). Los nombres van sin
@@ -67,13 +69,6 @@ body {
   font: var(--mat-sys-body-medium);
   margin: 0;
   height: 100%;
-}
-
-// Se oculta el label de rango interno del paginador ("0 - 9 de 42", primera etiqueta
-// dentro de .mat-mdc-paginator-range-actions). Es redundante con el pill de conteo
-// "Mostrando X de Y héroes" de la fila sobre la grilla (ver heroes-grid.html).
-.mat-mdc-paginator .mat-mdc-paginator-range-label {
-  display: none;
 }
 
 /* Estilos para SweetAlert el !important es necesario

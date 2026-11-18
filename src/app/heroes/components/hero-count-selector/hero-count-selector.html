@@ -1,0 +1,40 @@
+<!-- Pill "Mostrando X de Y héroes" + selector de items por página.
+     El pill se oculta mientras carga o en error (sin datos que mostrar);
+     el selector permanece para poder cambiarlo apenas haya datos. -->
+<div data-testid="count-row" class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  @if (shown() !== null && total() !== null) {
+    <div
+      data-testid="count-pill"
+      class="w-full sm:w-auto inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm text-zinc-600 shadow-sm"
+    >
+      <span class="text-indigo-600 text-lg leading-none">
+        <mat-icon inline aria-hidden="true">groups</mat-icon>
+      </span>
+      <span>
+        Mostrando <strong class="font-bold text-zinc-900">{{ shown() }}</strong> de
+        <strong class="font-bold text-zinc-900">{{ total() }}</strong> héroes
+      </span>
+    </div>
+  }
+
+  <div class="flex items-center">
+    <span class="mr-2.5 text-sm font-medium">Elementos por página:</span>
+    <mat-form-field
+      appearance="outline"
+      subscriptSizing="dynamic"
+      class="ml-auto w-24"
+      data-testid="page-size-selector"
+    >
+      <mat-select
+        id="page-size-select"
+        aria-label="Cantidad de héroes por página"
+        [value]="pageSize()"
+        (selectionChange)="pageSizeChange.emit($event.value)"
+      >
+        @for (option of pageSizeOptions(); track option) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

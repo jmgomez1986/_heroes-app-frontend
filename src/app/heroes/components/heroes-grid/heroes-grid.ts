@@ -25,6 +25,7 @@ import {
 } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { HeroGridCard } from '../hero-grid-card/hero-grid-card';
+import { HeroCountSelector } from '../hero-count-selector/hero-count-selector';
 import { HeroesUtilsService } from '../../../services/heroes-utils';
 import { Filters } from '../../../components/filters/filters';
 import {
@@ -39,6 +40,7 @@ import { I18N } from '../../../shared/i18n/es';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     HeroGridCard,
+    HeroCountSelector,
     Filters,
     ReactiveFormsModule,
     MatPaginatorModule,
@@ -155,6 +157,12 @@ export class HeroesGrid {
   /** Paginación también escribe la URL; los defaults viajan explícitos. */
   handlePageEvent(e: PageEvent): void {
     this.navigate({ page: e.pageIndex + 1, elements_per_page: e.pageSize });
+  }
+
+  /** Cambio de tamaño de página desde el selector superior: vuelve a la página 1
+   * (un tamaño nuevo invalida la página actual) y escribe la URL canónica. */
+  handlePageSizeChange(size: number): void {
+    this.navigate({ page: DEFAULT_PAGE, elements_per_page: size });
   }
 
   refreshHeroes() {
