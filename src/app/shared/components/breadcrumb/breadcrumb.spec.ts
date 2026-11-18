@@ -5,7 +5,7 @@ import { provideRouter, Router, Routes } from '@angular/router';
 import { Breadcrumb } from './breadcrumb';
 
 // Componente stub para las rutas del test: al breadcrumb solo le importa la URL.
-@Component({ selector: 'stub-page', template: '' })
+@Component({ selector: 'app-stub-page', template: '' })
 class StubPage {}
 
 // Rutas mínimas espejo de app.routes.ts (S6): navegación real para que el

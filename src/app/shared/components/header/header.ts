@@ -3,12 +3,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
-import { Breadcrumb } from '../breadcrumb/breadcrumb';
-
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, MatButtonModule, MatIcon, Breadcrumb],
+  imports: [RouterLink, RouterLinkActive, MatButtonModule, MatIcon],
   templateUrl: './header.html',
 })
 export class Header {

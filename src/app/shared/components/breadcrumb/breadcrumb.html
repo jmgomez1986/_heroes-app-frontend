@@ -8,10 +8,13 @@
         {{ segment.label }}
       </a>
     } @else {
-      <span class="truncate font-medium text-zinc-900">{{ segment.label }}</span>
+      <!-- Segmento actual: aria-current="page" es la marca estándar de breadcrumb para SR. -->
+      <span aria-current="page" class="truncate font-medium text-zinc-900">{{
+        segment.label
+      }}</span>
     }
     @if (!last) {
-      <mat-icon aria-hidden="true" class="!h-4 !w-4 text-zinc-400">chevron_right</mat-icon>
+      <mat-icon aria-hidden="true" class="h-4! w-4! text-zinc-400">chevron_right</mat-icon>
     }
   }
 </nav>

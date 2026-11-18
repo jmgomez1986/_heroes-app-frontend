@@ -5,7 +5,7 @@ import { provideRouter, Router, Routes } from '@angular/router';
 import { Header } from './header';
 
 // Componente stub para las rutas del test: al header solo le importa la URL activa.
-@Component({ selector: 'stub-page', template: '' })
+@Component({ selector: 'app-stub-page', template: '' })
 class StubPage {}
 
 // Rutas mínimas espejo de app.routes.ts: los tests navegan de verdad para
