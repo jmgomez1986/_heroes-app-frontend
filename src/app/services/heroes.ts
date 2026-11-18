@@ -11,6 +11,7 @@ import {
   UploadImageResponse,
   DeleteHeroResponse,
   HeroStats,
+  HeroPayload,
 } from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
 
@@ -50,7 +51,7 @@ export class HeroesService {
   }
 
   // Grabar un nuevo heroe en la db
-  addNewHero(newHero: Hero): Observable<NewHeroResponse> {
+  addNewHero(newHero: HeroPayload): Observable<NewHeroResponse> {
     return this.http.post<NewHeroResponse>(this.apiUrl, newHero);
   }
 
@@ -62,7 +63,7 @@ export class HeroesService {
   }
 
   // Editar un heroe por su slug: PATCH con semantica parcial (el backend aplica solo los campos presentes)
-  editHero(heroSlug: string, hero: Hero): Observable<EditHeroResponse> {
+  editHero(heroSlug: string, hero: Partial<HeroPayload>): Observable<EditHeroResponse> {
     return this.http.patch<EditHeroResponse>(`${this.apiUrl}/${heroSlug}`, hero);
   }
 

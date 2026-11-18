@@ -10,7 +10,7 @@ type ImageState = 'loading' | 'loaded' | 'error';
  * Componente de solo lectura para mostrar la imagen de un hero (secure_url completa de Cloudinary o vacía).
  * Estados: skeleton mientras carga, imagen al cargar, y placeholder ante URL rota o imagen vacía.
  * El contenedor padre debe tener tamaño definido (ej: `aspect-[3/4]`), este componente lo llena.
- * Para la subida/preview de un archivo local usar `custom-upload-image` (responsabilidad distinta).
+ * Para la subida/preview de un archivo local usar `load-image-hero` (responsabilidad distinta).
  */
 @Component({
   selector: 'app-hero-image',

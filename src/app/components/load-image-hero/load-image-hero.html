@@ -1,0 +1,78 @@
+<div
+  data-testid="hero-preview-panel"
+  class="flex w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm aspect-[3/4]"
+>
+  <!-- Dropzone: un <label> asociado al input (id único) da click nativo y foco visible
+       sin JavaScript; el input queda sr-only y conserva la semántica de archivo. -->
+  <label [attr.for]="inputId" [class]="dropzoneClasses()">
+    <input
+      [id]="inputId"
+      type="file"
+      accept="image/png, image/jpeg"
+      class="sr-only"
+      [disabled]="isView()"
+      (change)="onFileSelect($event)"
+    />
+
+    <!-- Placeholder por defecto (cuando no hay imagen seleccionada) -->
+    @if (!previewImage()) {
+      <div
+        class="z-10 flex flex-col items-center justify-center gap-2"
+        data-testid="preview-placeholder"
+      >
+        @if (!isView()) {
+          <div
+            class="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 shadow-sm transition-transform duration-200 group-hover:scale-105"
+          >
+            <mat-icon aria-hidden="true" class="text-[32px]">cloud_upload</mat-icon>
+          </div>
+          <span class="text-base font-semibold text-zinc-900">Selecciona la fotografía táctica</span>
+          <span class="max-w-60 text-sm text-zinc-500"
+            >PNG o JPG hasta 1 MB. Resolución recomendada: 1200 × 1600 px.</span
+          >
+        } @else {
+          <div
+            class="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-400"
+          >
+            <mat-icon aria-hidden="true" class="text-[32px]">hide_image</mat-icon>
+          </div>
+          <span class="text-base font-semibold text-zinc-900">Sin imagen</span>
+          <span class="max-w-60 text-sm text-zinc-500"
+            >Este héroe todavía no tiene fotografía.</span
+          >
+        }
+      </div>
+    }
+
+    <!-- Imagen de vista previa (se muestra tras seleccionar un archivo) -->
+    @if (previewImage()) {
+      <img
+        [alt]="previewAlt()"
+        class="absolute inset-0 z-10 h-full w-full object-cover"
+        [src]="previewImage()"
+        data-testid="preview-image"
+      />
+    }
+
+    <!-- Overlay de reemplazo: solo con imagen y fuera de modo view (no hay acción disponible). -->
+    @if (previewImage() && !isView()) {
+      <div
+        class="absolute bottom-3 left-3 right-3 z-20 hidden items-center justify-between rounded-lg bg-zinc-900/80 px-2 py-1 text-white backdrop-blur-sm group-hover:flex"
+      >
+        <span class="text-xs font-medium">Haz clic para reemplazar</span>
+        <mat-icon aria-hidden="true" class="text-[16px]">edit</mat-icon>
+      </div>
+    }
+  </label>
+
+  <!-- Error de validación visible (antes solo iba a console.warn) -->
+  @if (errorMessage()) {
+    <p
+      role="alert"
+      data-testid="image-error"
+      class="border-t border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700"
+    >
+      {{ errorMessage() }}
+    </p>
+  }
+</div>

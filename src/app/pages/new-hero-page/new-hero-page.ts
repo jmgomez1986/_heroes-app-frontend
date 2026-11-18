@@ -4,8 +4,8 @@ import { Mode } from '../../interfaces/shared.interface';
 
 @Component({
   selector: 'app-new-hero-page',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NewHero],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-hero-page.html',
 })
 export default class NewHeroPage {

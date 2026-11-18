@@ -674,7 +674,7 @@ describe('NewHero', () => {
       expect(Swal.fire).not.toHaveBeenCalled();
     });
 
-    it('Guardar guarda al hacer click con form válido', async () => {
+    it('Guardar envía el formulario (submit) con form válido', async () => {
       fillValidForm();
       mockSwalConfirmation(true);
       const refreshSpy = vi.spyOn(component.heroesUtilsService, 'refreshLoad');
@@ -684,7 +684,11 @@ describe('NewHero', () => {
       const saveButton = getButtonByText('Guardar');
       expect(saveButton).toBeTruthy();
       expect(saveButton!.nativeElement.disabled).toBe(false);
-      saveButton!.triggerEventHandler('click', null);
+      // type="submit": el click y el Enter disparan (ngSubmit), que es el único camino de guardado.
+      expect(saveButton!.nativeElement.getAttribute('type')).toBe('submit');
+
+      const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+      form.dispatchEvent(new Event('submit'));
       await flushMicrotasks();
 
       expect(heroesService.addNewHero).toHaveBeenCalledWith(
@@ -709,80 +713,4 @@ describe('NewHero', () => {
     expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: I18N.form.saveErrorTitle }));
   });
 
-  describe('panel de previsualización (overlays de la card)', () => {
-    const getPreviewPanel = () =>
-      fixture.nativeElement.querySelector('[data-testid="hero-preview-panel"]') as HTMLElement;
-
-    it('en modo create muestra en vivo los valores del formulario en los overlays', () => {
-      fillValidForm();
-      fixture.detectChanges();
-
-      const text = getPreviewPanel()?.textContent ?? '';
-      expect(text).toContain('Superman'); // alias
-      expect(text).toContain('Clark Kent'); // nombre real
-      expect(text).toContain('DC'); // universo
-      expect(text).toContain('Liga de la Justicia'); // equipo
-      expect(text).toContain('Hero'); // categoría
-      expect(text).toContain('Active'); // pill de estado
-    });
-
-    it('en modo create muestra el marcador "—" en los campos aún sin completar', () => {
-      fixture.detectChanges();
-
-      const text = getPreviewPanel()?.textContent ?? '';
-      // alias, nombre, universo y equipo arrancan vacíos: el overlay muestra "—"
-      expect(text).toContain('—');
-    });
-
-    it('en modo view toma los valores del héroe recibido', () => {
-      setMode('view');
-      setHero(createMockHero({ alias: 'Kal-El' }));
-      fixture.detectChanges();
-
-      expect(getPreviewPanel()?.textContent).toContain('Kal-El');
-    });
-
-    it('usa el dot verde para Active y el rojo para Inactive', () => {
-      fillValidForm({ status: 'Inactive' });
-      fixture.detectChanges();
-
-      const dot = getPreviewPanel().querySelector('.h-3.w-3.rounded-full');
-      expect(dot?.className).toContain('bg-red-500');
-      expect(dot?.className).not.toContain('bg-green-500');
-
-      fillValidForm({ status: 'Active' });
-      fixture.detectChanges();
-      expect(dot?.className).toContain('bg-green-500');
-    });
-
-    it('muestra la imagen recién seleccionada en el panel preview', () => {
-      const file = new File(['fake'], DUMMY_FILE_NAME, { type: 'image/png' });
-      component.onImageChanged({ fileName: DUMMY_FILE_NAME, file });
-      fixture.detectChanges();
-
-      const img = getPreviewPanel().querySelector(
-        '[data-testid="preview-image"]',
-      ) as HTMLImageElement;
-      expect(img?.src).toMatch(/^blob:/);
-    });
-
-    it('muestra la imagen existente del héroe en modo edit', () => {
-      setMode('edit');
-      setHero(createMockHero());
-      fixture.detectChanges();
-
-      const img = getPreviewPanel().querySelector(
-        '[data-testid="preview-image"]',
-      ) as HTMLImageElement;
-      expect(img?.src).toContain(CLOUDINARY_IMAGE);
-    });
-
-    it('muestra el bloque placeholder neutral cuando todavía no hay imagen', () => {
-      fixture.detectChanges();
-
-      expect(
-        getPreviewPanel().querySelector('[data-testid="preview-placeholder"]'),
-      ).toBeTruthy();
-    });
-  });
 });
