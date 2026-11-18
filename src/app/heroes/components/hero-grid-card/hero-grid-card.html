@@ -1,12 +1,11 @@
-<mat-card class="overflow-hidden shadow-sm! rounded-2xl border-zinc-200! bg-white! flex h-full" appearance="outlined">
+<mat-card
+  class="group overflow-hidden shadow-sm! rounded-2xl border-zinc-200! bg-white! flex h-full"
+  appearance="outlined"
+>
   <mat-card-content class="p-0 flex-1">
     <!-- Image Container -->
-    <div class="relative aspect-[3/4] w-full overflow-hidden">
-      <app-hero-image
-        [image]="hero().image"
-        [name]="hero().name"
-        [priority]="isPriorityImg()"
-      />
+    <div class="relative aspect-3/4 w-full overflow-hidden">
+      <app-hero-image [image]="hero().image" [name]="hero().name" [priority]="isPriorityImg()" />
 
       <!-- Top Overlays -->
       <div class="absolute top-3 left-3 flex items-center gap-2">
@@ -35,7 +34,9 @@
       <!-- Name and Category -->
       <div class="flex justify-between items-start">
         <div>
-          <h2 class="text-xl font-bold text-violet-950 leading-tight">{{ hero().alias }}</h2>
+          <h2 class="text-xl font-bold text-violet-950 leading-tight group-hover:text-blue-700">
+            {{ hero().alias }}
+          </h2>
           <p class="text-sm text-zinc-500">{{ hero().name }}</p>
           <!-- Alias placeholder -->
         </div>
