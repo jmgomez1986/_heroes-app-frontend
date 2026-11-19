@@ -29,13 +29,15 @@ import {
   NewHeroResponse,
   UploadImageResponse,
 } from '../../../interfaces/heroes.interface';
-import { HeroImageSelection, LoadImageHero } from '../../../components/load-image-hero/load-image-hero';
+import {
+  HeroImageSelection,
+  LoadImageHero,
+} from '../../../components/load-image-hero/load-image-hero';
 import { HeroesUtilsService } from '../../../services/heroes-utils';
 import { TransformTextUppercase } from '../../../directives/transform-text-uppercase';
 import { HeroErrorStateMatcher } from '../../../shared/error-state-matcher';
 import { LoadingOverlay } from '../../../shared/components/loading-overlay/loading-overlay';
 import { Mode } from '../../../interfaces/shared.interface';
-import { CanDeactivateForm } from '../../../interfaces/can-deactivate-form.interface';
 import { I18N } from '../../../shared/i18n/es';
 
 /** Nombres de los campos de texto con límite de caracteres. */
@@ -64,7 +66,7 @@ interface HeroeCategory {
   ],
   templateUrl: './new-hero.html',
 })
-export default class NewHero implements CanDeactivateForm {
+export default class NewHero {
   // Signals
   readonly hero = input<Hero>();
   readonly mode = input<Mode>('create');
@@ -143,10 +145,7 @@ export default class NewHero implements CanDeactivateForm {
       category: ['Hero', [Validators.required, Validators.maxLength(10)]],
       universe: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.universe)]],
       team: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.team)]],
-      description: [
-        '',
-        [Validators.required, Validators.maxLength(this.MAX_LENGTHS.description)],
-      ],
+      description: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.description)]],
       powers: this.fb.nonNullable.control<string[]>([]),
       image: ['', [Validators.required]],
     });
@@ -394,30 +393,5 @@ export default class NewHero implements CanDeactivateForm {
     // El preview lo administra `load-image-hero` (object URL propio, revocado al reemplazarse).
     this.heroForm.controls.image.setValue(selection.fileName ?? '');
     this.selectedImageFile.set(selection.file);
-  }
-
-  /** Pregunta al usuario si quiere descartar cambios sin guardar antes de
-   * navegar fuera de la ruta. Retorna true si se permite salir. */
-  canDeactivate(): boolean | Promise<boolean> {
-    // En modo view no hay edición, nada que descartar.
-    if (this.isView()) {
-      return true;
-    }
-
-    // Formulario sin cambios: se puede salir sin preguntar.
-    if (!this.heroForm.dirty) {
-      return true;
-    }
-
-    return Swal.fire({
-      title: I18N.form.discardChangesTitle,
-      text: I18N.form.discardChangesText,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: I18N.form.discardConfirm,
-      cancelButtonText: I18N.form.discardCancel,
-    }).then((result) => result.isConfirmed);
   }
 }
