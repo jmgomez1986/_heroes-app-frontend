@@ -29,10 +29,14 @@ import {
   NewHeroResponse,
   UploadImageResponse,
 } from '../../../interfaces/heroes.interface';
-import { HeroImageSelection, LoadImageHero } from '../../../components/load-image-hero/load-image-hero';
+import {
+  HeroImageSelection,
+  LoadImageHero,
+} from '../../../components/load-image-hero/load-image-hero';
 import { HeroesUtilsService } from '../../../services/heroes-utils';
 import { TransformTextUppercase } from '../../../directives/transform-text-uppercase';
 import { HeroErrorStateMatcher } from '../../../shared/error-state-matcher';
+import { LoadingOverlay } from '../../../shared/components/loading-overlay/loading-overlay';
 import { Mode } from '../../../interfaces/shared.interface';
 import { I18N } from '../../../shared/i18n/es';
 
@@ -58,6 +62,7 @@ interface HeroeCategory {
     MatChipsModule,
     MatIconModule,
     MatCardModule,
+    LoadingOverlay,
   ],
   templateUrl: './new-hero.html',
 })
@@ -115,6 +120,8 @@ export default class NewHero {
   private readonly selectedImageFile = signal<File | null>(null);
   /** Marca que la subida de imagen falló tras crear el héroe (el héroe sí quedó creado). */
   private readonly imageUploadFailed = signal(false);
+  /** Marca que hay un request de guardar en vuelo: bloquea el formulario y muestra el overlay. */
+  readonly isSaving = signal(false);
 
   /** Formulario tipado: `readonly` y sembrado en el inicializador (sin el placeholder vacío). */
   readonly heroForm = this.buildHeroForm();
@@ -138,10 +145,7 @@ export default class NewHero {
       category: ['Hero', [Validators.required, Validators.maxLength(10)]],
       universe: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.universe)]],
       team: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.team)]],
-      description: [
-        '',
-        [Validators.required, Validators.maxLength(this.MAX_LENGTHS.description)],
-      ],
+      description: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.description)]],
       powers: this.fb.nonNullable.control<string[]>([]),
       image: ['', [Validators.required]],
     });
@@ -228,6 +232,7 @@ export default class NewHero {
         cancelButtonText: I18N.form.cancel,
       }).then((result) => {
         if (result.isConfirmed) {
+          this.isSaving.set(true);
           const payload = this.buildPayload();
           this.imageUploadFailed.set(false);
 
@@ -240,6 +245,7 @@ export default class NewHero {
               : this.editHero(this.buildEditPayload(payload), heroSlug);
           heroesServiceObservable$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
+              this.isSaving.set(false);
               if (this.imageUploadFailed()) {
                 // El héroe ya quedó creado/editado: solo falló la imagen, que se puede
                 // reintentar desde Editar. Igual se vuelve al listado.
@@ -265,6 +271,7 @@ export default class NewHero {
               this.router.navigate(['/heroes']);
             },
             error: (err) => {
+              this.isSaving.set(false);
               console.error(
                 `No se pudo ${this.mode() === 'create' ? 'guardar' : 'editar'} el héroe:`,
                 err,

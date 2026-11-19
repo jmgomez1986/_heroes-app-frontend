@@ -1,0 +1,15 @@
+.loading-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(20, 20, 25, 0.35);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay-spinner {
+  width: 56px;
+  height: 56px;
+}

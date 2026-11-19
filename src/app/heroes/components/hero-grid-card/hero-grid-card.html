@@ -74,6 +74,7 @@
     </div>
   </mat-card-content>
   <mat-card-actions class="flex! flex-col! sm:flex-row! gap-2 w-full p-2!">
+    <app-loading-overlay [show]="isDeleting()"></app-loading-overlay>
     <button
       matButton="elevated"
       class="w-full sm:flex-1 bg-green-600! text-white!"
@@ -97,6 +98,7 @@
       class="w-full sm:flex-1 bg-red-600! text-white!"
       aria-label="Eliminar héroe"
       (click)="deleteHero()"
+      [disabled]="isDeleting()"
     >
       <mat-icon>delete</mat-icon>
       Eliminar

@@ -174,13 +174,15 @@
   </div>
 </mat-card>
 
+<app-loading-overlay [show]="isSaving()"></app-loading-overlay>
+
 <!-- Botones fuera de la card pero asociados al form por `form="hero-form"`: el submit
-     (click o Enter) sigue disparando (ngSubmit) sin envolver la card con el form. -->
+     (click o Enter) sigue disparando (ngSubmit) sin envolver la card con el form. --> 
 <div class="flex justify-end gap-6">
   @if (!isView()) {
-    <button matButton="filled" type="submit" form="hero-form" [disabled]="heroForm.invalid">
+    <button matButton="filled" type="submit" form="hero-form" [disabled]="heroForm.invalid || isSaving()">
       Guardar
     </button>
   }
-  <button matButton="outlined" type="button" (click)="cancelSubmit()">Cancelar</button>
+  <button matButton="outlined" type="button" (click)="cancelSubmit()" [disabled]="isSaving()">Cancelar</button>
 </div>

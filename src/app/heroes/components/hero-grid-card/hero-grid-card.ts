@@ -5,6 +5,7 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -18,18 +19,21 @@ import { Hero } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { HeroImage } from '../../../components/hero-image/hero-image';
 import { MatIcon } from '@angular/material/icon';
+import { LoadingOverlay } from '../../../shared/components/loading-overlay/loading-overlay';
 import { I18N } from '../../../shared/i18n/es';
 
 @Component({
   selector: 'app-hero-grid-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, HeroImage],
+  imports: [MatCardModule, MatButtonModule, MatChipsModule, MatIcon, HeroImage, LoadingOverlay],
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {
   hero = input.required<Hero>();
   isPriorityImg = input<boolean>(false);
   heroDeleted = output<void>();
+  /** Marca que hay un DELETE en vuelo: bloquea el botón Eliminar y muestra el overlay. */
+  readonly isDeleting = signal(false);
   // Services
   readonly heroesService = inject(HeroesService);
   private router = inject(Router);
@@ -47,11 +51,13 @@ export class HeroGridCard {
       cancelButtonText: I18N.heroes.card.cancelButton,
     }).then((result) => {
       if (result.isConfirmed) {
+        this.isDeleting.set(true);
         this.heroesService
           .deleteHero(this.hero().slug)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
+              this.isDeleting.set(false);
               Swal.fire({
                 title: I18N.heroes.card.deleteSuccessTitle,
                 text: I18N.heroes.card.deleteSuccessText,
@@ -60,6 +66,7 @@ export class HeroGridCard {
               this.heroDeleted.emit();
             },
             error: (err) => {
+              this.isDeleting.set(false);
               console.error('No se pudo eliminar el héroe:', err);
               Swal.fire({
                 title: I18N.heroes.card.deleteErrorTitle,
