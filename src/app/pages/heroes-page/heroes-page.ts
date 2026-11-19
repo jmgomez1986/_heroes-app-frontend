@@ -4,12 +4,10 @@ import { MatIcon } from '@angular/material/icon';
 import { firstValueFrom } from 'rxjs';
 
 import { HeroesGrid } from '../../heroes/components/heroes-grid/heroes-grid';
-import {
-  HeroStats,
-  StatCardEntry,
-} from '../../heroes/components/hero-stats/hero-stats';
 import { HeroesService } from '../../services/heroes';
 import { HeroStats as HeroStatsDto } from '../../interfaces/heroes.interface';
+import { HeroStats } from '../../heroes/components/hero-stats/hero-stats';
+import { StatCardEntry } from '../../interfaces/heroesStats.interface';
 
 @Component({
   selector: 'app-heroes-page',
@@ -47,6 +45,27 @@ export default class HeroesPage {
           { label: `${stats.total_heroes} Héroes`, classes: 'bg-green-100 text-green-700' },
           { label: `${stats.total_villains} Villanos`, classes: 'bg-red-100 text-red-700' },
         ],
+      },
+      {
+        label: 'Total de personajes Activos',
+        value: stats.total_active,
+        sub: 'Héroes activos al día de la fecha.',
+        icon: 'check_circle',
+        chips: [],
+      },
+      {
+        label: 'Total de personajes Inactivos',
+        sub: 'Héroes que ya no prestan sus servicios.',
+        value: stats.total_inactive,
+        icon: 'pause',
+        chips: [],
+      },
+      {
+        label: 'Total de personajes Fallecidos',
+        sub: 'Héroes que ya no están entre nosotros.',
+        value: stats.total_deceased,
+        icon: 'person_off',
+        chips: [],
       },
     ];
   });

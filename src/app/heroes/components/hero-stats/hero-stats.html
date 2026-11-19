@@ -1,9 +1,7 @@
 <!-- Receta de card del proyecto (blanco, borde zinc-200, rounded-2xl, sombra suave). -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
   @for (stat of stats(); track stat.label) {
-    <div
-      class="stat-card rounded-2xl border border-zinc-200 bg-white shadow-sm p-5 flex flex-col"
-    >
+    <div class="stat-card rounded-2xl border border-zinc-200 bg-white shadow-sm p-5 flex flex-col">
       <div class="flex items-center gap-2 text-sm font-medium text-zinc-500">
         @if (stat.icon) {
           <span class="text-indigo-600 text-lg leading-none">
@@ -13,20 +11,17 @@
         <span>{{ stat.label }}</span>
       </div>
 
-      <p class="mt-2 text-3xl font-bold text-violet-950 leading-tight">{{ stat.value }}</p>
-
       @if (stat.sub) {
         <p class="mt-1 text-xs text-zinc-500">{{ stat.sub }}</p>
       }
+
+      <p class="mt-2 text-3xl font-bold text-violet-950 leading-tight">{{ stat.value }}</p>
 
       @if (stat.chips?.length) {
         <div class="mt-3 flex flex-wrap gap-2">
           @for (chip of stat.chips; track chip.label) {
             <!-- Las clases de color viajan en los datos: el renderer no decide estilos. -->
-            <span
-              class="rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-              [class]="chip.classes"
-            >
+            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold" [class]="chip.classes">
               {{ chip.label }}
             </span>
           }

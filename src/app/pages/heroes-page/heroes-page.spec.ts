@@ -18,6 +18,9 @@ const createMockStats = (): HeroStats => ({
   total_elements: 42,
   total_heroes: 30,
   total_villains: 12,
+  total_active: 21,
+  total_inactive: 3,
+  total_deceased: 1,
 });
 
 // Fake del servicio: la página monta el grid completo (que consulta en el arranque)

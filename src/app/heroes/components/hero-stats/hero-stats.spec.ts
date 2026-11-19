@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { HeroStats, StatCardEntry } from './hero-stats';
+import { HeroStats } from './hero-stats';
+import { StatCardEntry } from '../../../interfaces/heroesStats.interface';
 
 const createEntry = (
   overrides: Partial<StatCardEntry> = {},
