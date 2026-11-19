@@ -46,11 +46,6 @@ export const I18N = {
     cancel: 'Cancelar',
     save: 'Guardar',
     fieldRequired: 'El campo es obligatorio',
-    discardChangesTitle: '¿Descartar cambios sin guardar?',
-    discardChangesText:
-      'Tienes cambios sin guardar en el formulario. ¿Estás seguro de que quieres salir?',
-    discardConfirm: 'Sí, salir',
-    discardCancel: 'No, quedarme',
   },
   upload: {
     selectFile: 'Seleccionar archivo de imagen',
