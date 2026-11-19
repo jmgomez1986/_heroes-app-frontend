@@ -1,21 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-
-/** Chip dentro de una stat card: el color viaja en los datos (classes de Tailwind). */
-export interface StatCardChip {
-  label: string;
-  classes: string;
-}
-
-/** Entrada de datos de una stat card. Todos los campos salvo label/value son opcionales:
- * agregar una card nueva es solo agregar una entrada al array (renderer escalable). */
-export interface StatCardEntry {
-  label: string;
-  value: string | number;
-  icon?: string;
-  chips?: StatCardChip[];
-  sub?: string;
-}
+import { StatCardEntry } from '../../../interfaces/heroesStats.interface';
 
 @Component({
   selector: 'app-hero-stats',

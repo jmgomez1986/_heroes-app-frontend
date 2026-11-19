@@ -63,9 +63,11 @@ export interface DeleteHeroResponse {
 }
 
 // Respuesta real del backend con los contadores del catalogo (GET /heroes/stats).
-// Los totales cuentan por category: total_heroes y total_villains.
 export interface HeroStats {
   total_elements: number;
   total_heroes: number;
   total_villains: number;
+  total_active: number;
+  total_inactive: number;
+  total_deceased: number;
 }

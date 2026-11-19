@@ -107,6 +107,7 @@ export default class NewHero {
   readonly heroStatus: HeroeCategory[] = [
     { value: 'Active', viewValue: 'Activo' },
     { value: 'Inactive', viewValue: 'Inactivo' },
+    { value: 'Deceased', viewValue: 'Fallecido' },
   ];
 
   readonly reactivePowersWords = signal<string[]>([]);
