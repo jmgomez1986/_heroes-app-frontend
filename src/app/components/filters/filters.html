@@ -1,89 +1,77 @@
 <mat-card appearance="outlined" class="mb-5 p-4 shadow-sm! rounded-2xl border-zinc-200! bg-white!">
-  <div
-    class="grid grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 items-center lg:items-start"
-  >
+  <div class="grid grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 items-start">
     <div class="row-span-2 flex items-center justify-center text-xl text-indigo-600 font-medium px-2">
       <span>Filtros</span>
     </div>
-    <!-- Name Filter -->
-    <div class="flex flex-col sm:flex-row items-start gap-2 w-full">
-      <label
-        for="heroName"
-        class="sm:w-auto text-sm text-zinc-600 font-medium whitespace-nowrap pt-2.5"
-      >
-        Nombre a buscar:
-      </label>
-      <mat-form-field appearance="outline" class="w-full">
-        <input
-          matInput
-          id="heroName"
-          [formControl]="nameFilter"
-          placeholder="Ingrese el nombre del Héroe a buscar"
-          (input)="onTextInput($event, nameFilter)"
-          [errorStateMatcher]="matcher"
-        />
 
-        <!-- Boton para limpiar el input -->
-        @if (nameFilter.value) {
-          <button
-            matSuffix
-            matButton
-            aria-label="Limpiar búsqueda"
-            class="cursor-pointer"
-            (click)="nameFilter.setValue('')"
+    @for (field of filterConfig(); track field.id) {
+      <div class="flex flex-col gap-2">
+        <label
+          [for]="'hero-' + field.id"
+          class="text-sm text-zinc-600 font-medium whitespace-nowrap"
+        >
+          {{ field.label }}
+        </label>
+
+        @if (field.type === 'text') {
+          <div class="relative">
+            <input
+              matInput
+              [id]="'hero-' + field.id"
+              [formControl]="getControl(field.id)"
+              [placeholder]="field.placeholder"
+              (input)="onTextInput($event, field.id)"
+              [errorStateMatcher]="matcher"
+              class="w-full border border-zinc-300 rounded-lg px-3 pr-10 py-2 text-zinc-900 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
+            />
+
+            @if (field.maxLength) {
+              <div class="absolute right-10 top-2 text-xs text-zinc-400">
+                {{ getControl(field.id).value.length ?? 0 }} / {{ field.maxLength }}
+              </div>
+            }
+
+            @if (getControl(field.id).hasError('maxlength')) {
+              <div class="absolute left-2 bottom-1 text-xs text-red-600 font-medium">
+                Máximo {{ field.maxLength }} caracteres
+              </div>
+            }
+
+            <button
+              mat-icon-button
+              aria-label="Limpiar búsqueda"
+              class="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-zinc-400 hover:text-indigo-600 z-10"
+              (click)="getControl(field.id).setValue('')"
+            >
+              <mat-icon class="text-xs">close</mat-icon>
+            </button>
+          </div>
+        }
+
+        @if (field.type === 'select') {
+          <mat-select
+            [id]="'hero-' + field.id"
+            [formControl]="getControl(field.id)"
+            class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-zinc-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           >
-            <mat-icon>close</mat-icon>
-          </button>
+            @for (opt of field.options ?? []; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
         }
 
-        @if (nameFilter.hasError('maxlength')) {
-          <mat-error>El nombre debe tener un máximo de 20 caracteres.</mat-error>
-        }
-
-        @if (nameFilter.value?.length === FILTER_MAX_LENGTH) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
-        }
-      </mat-form-field>
-    </div>
-    <!-- Alias Filter -->
-    <div class="flex flex-col sm:flex-row items-start gap-2 w-full">
-      <label
-        for="heroAlias"
-        class="sm:w-auto text-sm text-zinc-600 font-medium whitespace-nowrap pt-2.5"
-      >
-        Alias a buscar:
-      </label>
-      <mat-form-field appearance="outline" class="w-full">
-        <input
-          matInput
-          id="heroAlias"
-          [formControl]="aliasFilter"
-          placeholder="Ingrese el alias del Héroe a buscar"
-          (input)="onTextInput($event, aliasFilter)"
-          [errorStateMatcher]="matcher"
-        />
-
-        <!-- Boton para limpiar el input -->
-        @if (aliasFilter.value) {
-          <button
-            matSuffix
-            matButton
-            aria-label="Limpiar búsqueda"
-            class="cursor-pointer"
-            (click)="aliasFilter.setValue('')"
+        @if (field.type === 'radio') {
+          <mat-radio-group
+            [id]="'hero-' + field.id"
+            [formControl]="getControl(field.id)"
+            class="flex flex-wrap gap-3"
           >
-            <mat-icon>close</mat-icon>
-          </button>
+            @for (opt of field.options ?? []; track opt.value) {
+              <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
         }
-
-        @if (aliasFilter.hasError('maxlength')) {
-          <mat-error>El alias debe tener un máximo de 20 caracteres.</mat-error>
-        }
-
-        @if (aliasFilter.value?.length === FILTER_MAX_LENGTH) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
-        }
-      </mat-form-field>
-    </div>
+      </div>
+    }
   </div>
 </mat-card>

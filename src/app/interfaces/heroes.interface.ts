@@ -1,6 +1,10 @@
 export interface Filters {
   name?: string;
   alias?: string;
+  team?: string;
+  universe?: string;
+  category?: string;
+  status?: string;
 }
 
 export interface Hero {

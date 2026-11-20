@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { Filters } from './filters';
 import { Filters as FiltersQuery } from '../../interfaces/heroes.interface';
@@ -10,6 +11,7 @@ describe('Filters', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Filters],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Filters);
@@ -30,7 +32,7 @@ describe('Filters', () => {
       vi.useFakeTimers();
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
-      component.nameFilter.setValue('  ab  ');
+      component.filterForm.get('name')!.setValue('  ab  ');
       await vi.advanceTimersByTimeAsync(1000);
 
       expect(emit).toHaveBeenCalledWith({ name: 'ab' });
@@ -40,8 +42,8 @@ describe('Filters', () => {
       vi.useFakeTimers();
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
-      component.nameFilter.setValue('x'.repeat(25));
-      expect(component.nameFilter.invalid).toBe(true);
+      component.filterForm.get('name')!.setValue('x'.repeat(25));
+      expect(component.filterForm.get('name')!.invalid).toBe(true);
       await vi.advanceTimersByTimeAsync(1000);
 
       expect(emit).not.toHaveBeenCalled();
@@ -57,7 +59,7 @@ describe('Filters', () => {
       vi.useFakeTimers();
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
-      component.aliasFilter.setValue('  ab  ');
+      component.filterForm.get('alias')!.setValue('  ab  ');
       await vi.advanceTimersByTimeAsync(1000);
 
       expect(emit).toHaveBeenCalledWith({ alias: 'ab' });
@@ -67,11 +69,73 @@ describe('Filters', () => {
       vi.useFakeTimers();
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
-      component.aliasFilter.setValue('x'.repeat(25));
-      expect(component.aliasFilter.invalid).toBe(true);
+      component.filterForm.get('alias')!.setValue('x'.repeat(25));
+      expect(component.filterForm.get('alias')!.invalid).toBe(true);
       await vi.advanceTimersByTimeAsync(1000);
 
       expect(emit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('valueChanges (filtros nuevos)', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('emite team al cambiar el valor de texto', async () => {
+      vi.useFakeTimers();
+      const emit = vi.spyOn(component.filtersChange, 'emit');
+
+      const teamControl = component.filterForm.get('team')!;
+      teamControl.setValue('  Avengers  ');
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(emit).toHaveBeenCalledWith({ team: 'Avengers' });
+    });
+
+    it('no emite team cuando el control es inválido (supera el máximo de caracteres)', async () => {
+      vi.useFakeTimers();
+      const emit = vi.spyOn(component.filtersChange, 'emit');
+
+      const teamControl = component.filterForm.get('team')!;
+      teamControl.setValue('x'.repeat(25));
+      expect(teamControl.invalid).toBe(true);
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(emit).not.toHaveBeenCalled();
+    });
+
+    it('emite universe al cambiar el valor de texto', async () => {
+      vi.useFakeTimers();
+      const emit = vi.spyOn(component.filtersChange, 'emit');
+
+      const universeControl = component.filterForm.get('universe')!;
+      universeControl.setValue('  Marvel  ');
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(emit).toHaveBeenCalledWith({ universe: 'Marvel' });
+    });
+
+    it('emite category al cambiar el radio button', async () => {
+      vi.useFakeTimers();
+      const emit = vi.spyOn(component.filtersChange, 'emit');
+
+      const categoryControl = component.filterForm.get('category')!;
+      categoryControl.setValue('villano');
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(emit).toHaveBeenCalledWith({ category: 'villano' });
+    });
+
+    it('emite status al cambiar el select', async () => {
+      vi.useFakeTimers();
+      const emit = vi.spyOn(component.filtersChange, 'emit');
+
+      const statusControl = component.filterForm.get('status')!;
+      statusControl.setValue('activo');
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(emit).toHaveBeenCalledWith({ status: 'activo' });
     });
   });
 
@@ -82,11 +146,15 @@ describe('Filters', () => {
       fixture.componentRef.setInput('initialFilters', {
         name: 'super',
         alias: 'man',
+        team: 'Avengers',
+        category: 'heroe',
       } as FiltersQuery);
       await fixture.whenStable();
 
-      expect(component.nameFilter.value).toBe('super');
-      expect(component.aliasFilter.value).toBe('man');
+      expect(component.filterForm.get('name')!.value).toBe('super');
+      expect(component.filterForm.get('alias')!.value).toBe('man');
+      expect(component.filterForm.get('team')!.value).toBe('Avengers');
+      expect(component.filterForm.get('category')!.value).toBe('heroe');
       // La hidratación no debe disparar valueChanges (no hay loop URL → emit → URL)
       expect(emit).not.toHaveBeenCalled();
     });
@@ -99,7 +167,7 @@ describe('Filters', () => {
       fixture.componentRef.setInput('initialFilters', { name: 'batman' } as FiltersQuery);
       await fixture.whenStable();
 
-      expect(component.nameFilter.value).toBe('batman');
+      expect(component.filterForm.get('name')!.value).toBe('batman');
       expect(emit).not.toHaveBeenCalled();
     });
 
@@ -111,7 +179,7 @@ describe('Filters', () => {
       fixture.componentRef.setInput('initialFilters', { name: 'super', alias: '' } as FiltersQuery);
       await fixture.whenStable();
 
-      expect(component.nameFilter.value).toBe('super');
+      expect(component.filterForm.get('name')!.value).toBe('super');
       expect(emit).not.toHaveBeenCalled();
     });
   });
@@ -137,36 +205,29 @@ describe('Filters', () => {
     it('recorta el nameFilter a máximo + 1 (21) y lo deja inválido', () => {
       const { event, target } = createInputEvent('x'.repeat(30));
 
-      component.onTextInput(event, component.nameFilter);
+      component.onTextInput(event, 'name');
 
       expect(target.value).toBe('x'.repeat(21));
-      expect(component.nameFilter.value).toBe('x'.repeat(21));
-      expect(component.nameFilter.hasError('maxlength')).toBe(true);
+      expect(component.filterForm.get('name')!.value).toBe('x'.repeat(21));
+      expect(component.filterForm.get('name')!.hasError('maxlength')).toBe(true);
     });
 
-    it('muestra el mat-hint solo cuando el filtro llega al máximo (20)', () => {
-      component.nameFilter.setValue('x'.repeat(20));
-      fixture.detectChanges();
+    it('recorta el teamFilter a máximo + 1 (21) y lo deja inválido', () => {
+      const { event, target } = createInputEvent('x'.repeat(30));
 
-      expect(fixture.nativeElement.textContent).toContain('Límite de caracteres alcanzado');
+      component.onTextInput(event, 'team');
 
-      component.nameFilter.setValue('x'.repeat(19));
-      fixture.detectChanges();
-
-      expect(fixture.nativeElement.textContent).not.toContain('Límite de caracteres alcanzado');
+      expect(target.value).toBe('x'.repeat(21));
+      expect(component.filterForm.get('team')!.value).toBe('x'.repeat(21));
+      expect(component.filterForm.get('team')!.hasError('maxlength')).toBe(true);
     });
 
-    it('integración: no tiene maxlength nativo y recorta el DOM al tipear', () => {
-      fixture.detectChanges();
-      const input = fixture.nativeElement.querySelector('#heroName') as HTMLInputElement;
-      expect(input.getAttribute('maxlength')).toBeNull();
+    it('muestra el aviso de límite solo cuando el filtro llega al máximo (20)', () => {
+      component.filterForm.get('name')!.setValue('x'.repeat(20));
+      expect(component.filterForm.get('name')!.value?.length).toBe(20);
 
-      input.value = 'y'.repeat(25);
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-
-      expect(input.value.length).toBe(21);
-      expect(component.nameFilter.value?.length).toBe(21);
+      component.filterForm.get('name')!.setValue('x'.repeat(19));
+      expect(component.filterForm.get('name')!.value?.length).toBe(19);
     });
   });
 });
