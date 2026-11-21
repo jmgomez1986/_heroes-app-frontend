@@ -8,7 +8,10 @@
       {{ brandName }}
     </a>
 
-    <nav class="ml-auto flex shrink-0 items-center gap-1 sm:gap-4" aria-label="Navegación principal">
+    <nav
+      class="ml-auto flex shrink-0 items-center gap-1 sm:gap-4"
+      aria-label="Navegación principal"
+    >
       <a
         routerLink="/heroes"
         routerLinkActive="font-semibold text-indigo-600"
@@ -26,10 +29,19 @@
       >
         Nuevo Héroe
       </a>
-      <!-- CTA indigo filled (S1): reemplaza al botón de alta de la página de catálogo. -->
-      <button matButton="filled" routerLink="/new-hero" class="bg-indigo-600! text-white!">
-        <mat-icon aria-hidden="true">add</mat-icon>
-        Registrar Héroe
+      <button
+        matButton="filled"
+        routerLink="/new-hero"
+        class="h-8! shrink-0 rounded-full! bg-indigo-600! px-2.5! text-xs! text-white! sm:h-10! sm:px-4! sm:text-sm!"
+      >
+        <mat-icon
+          aria-hidden="true"
+          class="h-4! w-4! text-[16px]! leading-none! sm:h-5! sm:w-5! sm:text-[20px]!"
+        >
+          add
+        </mat-icon>
+        <span class="sm:hidden">Héroe</span>
+        <span class="hidden sm:inline">Registrar Héroe</span>
       </button>
     </nav>
   </div>

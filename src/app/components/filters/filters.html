@@ -1,5 +1,9 @@
 <mat-accordion class="block mb-8">
-  <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+  <mat-expansion-panel
+    [expanded]="panelOpenState()"
+    (opened)="panelOpenState.set(true)"
+    (closed)="panelOpenState.set(false)"
+  >
     <mat-expansion-panel-header>
       <mat-panel-title> Filtros </mat-panel-title>
     </mat-expansion-panel-header>
