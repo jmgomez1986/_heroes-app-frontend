@@ -1,13 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
+  computed,
   effect,
   inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -37,8 +38,6 @@ import { FilterFieldConfig, FiltersQuery } from '../../interfaces/heroesFilters.
 })
 export class Filters {
   matcher = new HeroErrorStateMatcher();
-  // Inyeccion de la referencia de destruccion para la desubcripcion
-  private destroyRef = inject(DestroyRef);
   private readonly heroesUtilsService = inject(HeroesUtilsService);
 
   readonly panelOpenState = signal(false);
@@ -117,7 +116,30 @@ export class Filters {
   /** Valores iniciales desde la URL: la grilla los pasa al montar y al volver atrás/adelante. */
   initialFilters = input<FiltersQuery>({});
 
-  /** Emite el filtro aplicado ya normalizado (trim), como objeto parcial: { name } o { alias }. */
+  /** Último valor del form. La hidratación usa emitEvent: false, así que no lo dispara. */
+  private readonly formValue = toSignal(this.filterForm.valueChanges, {
+    initialValue: this.filterForm.value,
+  });
+
+  /** En los radios, el valor default ("Todos") equivale a no filtrar. */
+  private defaultValueOf(field: FilterFieldConfig): string {
+    return field.options?.find((opt) => opt.default)?.value ?? '';
+  }
+
+  /** Hay cambios cuando el form difiere de los filtros hidratados desde la URL. */
+  readonly hasChanges = computed(() => {
+    const current = this.formValue();
+    const initial = this.initialFilters();
+    return this.filterConfig().some((field) => {
+      const currentValue =
+        field.type === 'radio' && current[field.id] === this.defaultValueOf(field)
+          ? ''
+          : (current[field.id] ?? '');
+      return currentValue !== (initial[field.id] ?? '');
+    });
+  });
+
+  /** Emite el valor del form al aplicar; la grilla se encarga de recortar y omitir vacíos. */
   filtersChange = output<Partial<FiltersQuery>>();
   refreshHeroes = output<void>();
 
@@ -161,6 +183,9 @@ export class Filters {
   }
 
   applyFilters(): void {
+    if (this.filterForm.invalid || !this.hasChanges()) {
+      return;
+    }
     this.filtersChange.emit(this.filterForm.value);
   }
 
@@ -168,8 +193,7 @@ export class Filters {
     this.filterConfig().forEach((field) => {
       const control = this.filterForm.get(field.id)!;
       const value = field.type === 'radio' ? 'all' : '';
-      // emitEvent reemplaza el valor que el debounce todavía no aplicó,
-      // así un texto a medio tipear no vuelve a la URL después de limpiar.
+      // Al escribir el valor se actualiza formValue y, con él, hasChanges.
       if (control.value !== '') {
         control.setValue(value);
       }
