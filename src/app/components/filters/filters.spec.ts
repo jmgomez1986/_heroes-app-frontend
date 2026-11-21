@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { Filters } from './filters';
-import { Filters as FiltersQuery } from '../../interfaces/heroes.interface';
+import { FiltersQuery } from '../../interfaces/heroesFilters.interface';
 
 describe('Filters', () => {
   let component: Filters;
@@ -121,10 +121,10 @@ describe('Filters', () => {
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
       const categoryControl = component.filterForm.get('category')!;
-      categoryControl.setValue('villano');
+      categoryControl.setValue('villain');
       await vi.advanceTimersByTimeAsync(1000);
 
-      expect(emit).toHaveBeenCalledWith({ category: 'villano' });
+      expect(emit).toHaveBeenCalledWith({ category: 'villain' });
     });
 
     it('emite status al cambiar el select', async () => {
@@ -132,10 +132,47 @@ describe('Filters', () => {
       const emit = vi.spyOn(component.filtersChange, 'emit');
 
       const statusControl = component.filterForm.get('status')!;
-      statusControl.setValue('activo');
+      statusControl.setValue('active');
       await vi.advanceTimersByTimeAsync(1000);
 
-      expect(emit).toHaveBeenCalledWith({ status: 'activo' });
+      expect(emit).toHaveBeenCalledWith({ status: 'active' });
+    });
+  });
+
+  describe('resetFilters', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('limpia textos, select y radios, pide recargar y no reaplica lo que estaba en debounce', async () => {
+      vi.useFakeTimers();
+      const filtersEmit = vi.spyOn(component.filtersChange, 'emit');
+      const refreshEmit = vi.spyOn(component.refreshHeroes, 'emit');
+
+      component.filterForm.get('name')!.setValue('batman');
+      component.filterForm.get('alias')!.setValue('murcielago');
+      component.filterForm.get('team')!.setValue('liga');
+      component.filterForm.get('universe')!.setValue('dc');
+      component.filterForm.get('category')!.setValue('hero');
+      component.filterForm.get('status')!.setValue('active');
+
+      component.resetFilters();
+
+      expect(component.filterForm.get('name')!.value).toBe('');
+      expect(component.filterForm.get('alias')!.value).toBe('');
+      expect(component.filterForm.get('team')!.value).toBe('');
+      expect(component.filterForm.get('universe')!.value).toBe('');
+      expect(component.filterForm.get('category')!.value).toBe('all');
+      expect(component.filterForm.get('status')!.value).toBe('');
+      expect(refreshEmit).toHaveBeenCalledOnce();
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(filtersEmit).toHaveBeenCalledWith({ name: '' });
+      expect(filtersEmit).toHaveBeenCalledWith({ category: 'all' });
+      expect(filtersEmit).toHaveBeenCalledWith({ status: '' });
+      expect(filtersEmit).not.toHaveBeenCalledWith({ name: 'batman' });
+      expect(filtersEmit).not.toHaveBeenCalledWith({ category: 'hero' });
     });
   });
 
@@ -147,14 +184,21 @@ describe('Filters', () => {
         name: 'super',
         alias: 'man',
         team: 'Avengers',
-        category: 'heroe',
       } as FiltersQuery);
       await fixture.whenStable();
 
       expect(component.filterForm.get('name')!.value).toBe('super');
       expect(component.filterForm.get('alias')!.value).toBe('man');
       expect(component.filterForm.get('team')!.value).toBe('Avengers');
-      expect(component.filterForm.get('category')!.value).toBe('heroe');
+      fixture.componentRef.setInput('initialFilters', {
+        universe: 'DC',
+        category: 'hero',
+        status: 'active',
+      } as FiltersQuery);
+      await fixture.whenStable();
+      expect(component.filterForm.get('universe')!.value).toBe('DC');
+      expect(component.filterForm.get('category')!.value).toBe('hero');
+      expect(component.filterForm.get('status')!.value).toBe('active');
       // La hidratación no debe disparar valueChanges (no hay loop URL → emit → URL)
       expect(emit).not.toHaveBeenCalled();
     });

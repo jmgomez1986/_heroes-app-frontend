@@ -3,17 +3,17 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
-  Filters,
   GetHeroesResponse,
   Hero,
   EditHeroResponse,
   NewHeroResponse,
   UploadImageResponse,
   DeleteHeroResponse,
-  HeroStats,
+  HeroStatsResponse,
   HeroPayload,
 } from '../interfaces/heroes.interface';
 import { environment } from '../environments/environment';
+import { FiltersQuery } from '../interfaces/heroesFilters.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -24,17 +24,23 @@ export class HeroesService {
 
   /**
    * Devuelve todos los heroes de la db. Consulta paginada con filtros opcionales
-   * por coincidencia parcial en nombre y alias. Único punto de serialización
+   * por los filtros del formulario. Único punto de serialización
    * Filters → query params: solo viajan los filtros con valor.
    */
-  getHeroes(page: number, itemsPerPage: number, query?: Filters): Observable<GetHeroesResponse> {
+  getHeroes(
+    page: number,
+    itemsPerPage: number,
+    query?: FiltersQuery,
+  ): Observable<GetHeroesResponse> {
     let params = new HttpParams().set('page', page).set('elements_per_page', itemsPerPage);
 
     // Trim acá: la URL y la request quedan canónicas en un solo lugar.
-    const name = (query?.name ?? '').trim();
-    const alias = (query?.alias ?? '').trim();
-    if (name) params = params.set('name', name);
-    if (alias) params = params.set('alias', alias);
+    // Solo viajan los filtros con valor; el orden es estable para el contrato.
+    const filterKeys = ['name', 'alias', 'team', 'universe', 'category', 'status'] as const;
+    for (const key of filterKeys) {
+      const value = (query?.[key] ?? '').trim();
+      if (value) params = params.set(key, value);
+    }
 
     return this.http.get<GetHeroesResponse>(this.apiUrl, { params });
   }
@@ -46,8 +52,8 @@ export class HeroesService {
 
   // Contadores del catálogo (GET /heroes/stats). El endpoint puede no existir
   // todavía: el consumidor degrada con gracia ocultando la sección (ver HeroesPage).
-  getStats(): Observable<HeroStats> {
-    return this.http.get<HeroStats>(`${this.apiUrl}/stats`);
+  getStats(): Observable<HeroStatsResponse> {
+    return this.http.get<HeroStatsResponse>(`${this.apiUrl}/stats`);
   }
 
   // Grabar un nuevo heroe en la db

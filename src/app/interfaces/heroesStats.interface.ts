@@ -1,3 +1,7 @@
+import { HeroStatsResponse } from './heroes.interface';
+
+export type HeroesStatsDTO = HeroStatsResponse;
+
 /** Chip dentro de una stat card: el color viaja en los datos (classes de Tailwind). */
 export interface StatCardChip {
   label: string;

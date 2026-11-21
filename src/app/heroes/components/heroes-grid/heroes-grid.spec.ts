@@ -5,6 +5,7 @@ import { PageEvent } from '@angular/material/paginator';
 
 import { HeroesGrid } from './heroes-grid';
 import { HeroesService } from '../../../services/heroes';
+import { HeroesUtilsService } from '../../../services/heroes-utils';
 import { GetHeroesResponse, Hero } from '../../../interfaces/heroes.interface';
 import { I18N } from '../../../shared/i18n/es';
 import Swal from 'sweetalert2';
@@ -127,6 +128,63 @@ describe('HeroesGrid', () => {
       [],
       expect.objectContaining({ queryParamsHandling: 'merge', replaceUrl: true }),
     );
+  });
+
+  it('toma de la URL todos los filtros y los manda al get', async () => {
+    queryParams$.next(
+      convertToParamMap({
+        name: 'clark',
+        alias: 'super',
+        team: 'liga',
+        universe: 'dc',
+        category: 'heroe',
+        status: 'activo',
+      }),
+    );
+    await flushMicrotasks();
+
+    expect(heroesService.getHeroes).toHaveBeenLastCalledWith(1, 10, {
+      name: 'clark',
+      alias: 'super',
+      team: 'liga',
+      universe: 'dc',
+      category: 'heroe',
+      status: 'activo',
+    });
+  });
+
+  it('clearFilters borra todos los filtros de la URL cuando había alguno', async () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const refresh = vi.spyOn(TestBed.inject(HeroesUtilsService), 'refreshLoad');
+    queryParams$.next(convertToParamMap({ name: 'batman', category: 'heroe', page: '3' }));
+    await flushMicrotasks();
+
+    component.clearFilters();
+
+    const extras = vi.mocked(router.navigate).mock.calls.at(-1)![1]!;
+    expect(extras.queryParams).toStrictEqual({
+      name: undefined,
+      alias: undefined,
+      team: undefined,
+      universe: undefined,
+      category: undefined,
+      status: undefined,
+      page: 1,
+      elements_per_page: 10,
+    });
+    expect(extras).toEqual(
+      expect.objectContaining({ queryParamsHandling: 'merge', replaceUrl: true }),
+    );
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('clearFilters recarga el listado cuando la URL ya estaba sin filtros', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const refresh = vi.spyOn(TestBed.inject(HeroesUtilsService), 'refreshLoad');
+
+    component.clearFilters();
+
+    expect(refresh).toHaveBeenCalledOnce();
   });
 
   it('limpiar un filtro lo BORRA de la URL: el router recibe la key con undefined (señal de borrado del merge)', () => {

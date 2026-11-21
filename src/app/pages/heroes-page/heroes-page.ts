@@ -5,9 +5,8 @@ import { firstValueFrom } from 'rxjs';
 
 import { HeroesGrid } from '../../heroes/components/heroes-grid/heroes-grid';
 import { HeroesService } from '../../services/heroes';
-import { HeroStats as HeroStatsDto } from '../../interfaces/heroes.interface';
 import { HeroStats } from '../../heroes/components/hero-stats/hero-stats';
-import { StatCardEntry } from '../../interfaces/heroesStats.interface';
+import { StatCardEntry, HeroesStatsDTO } from '../../interfaces/heroesStats.interface';
 
 @Component({
   selector: 'app-heroes-page',
@@ -23,7 +22,7 @@ export default class HeroesPage {
   /** Datos de GET /heroes/stats vía resource (misma convención que la grilla).
    * En error (endpoint inexistente, servidor caído) no hay hasValue(): la sección
    * de contadores se oculta sin error visible ni console.error. */
-  private readonly heroStatsResource = resource<HeroStatsDto, unknown>({
+  private readonly heroStatsResource = resource<HeroesStatsDTO, unknown>({
     loader: () => firstValueFrom(this.heroesService.getStats()),
   });
 

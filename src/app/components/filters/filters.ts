@@ -9,13 +9,7 @@ import {
 } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -24,16 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HeroErrorStateMatcher } from '../../shared/error-state-matcher';
 import { HeroesUtilsService } from '../../services/heroes-utils';
-import { Filters as FiltersQuery } from '../../interfaces/heroes.interface';
-
-export interface FilterFieldConfig {
-  id: keyof FiltersQuery;
-  label: string;
-  placeholder: string;
-  type: 'text' | 'select' | 'radio';
-  maxLength?: number;
-  options?: { label: string; value: string }[];
-}
+import { FilterFieldConfig, FiltersQuery } from '../../interfaces/heroesFilters.interface';
 
 @Component({
   selector: 'app-filters',
@@ -91,9 +76,10 @@ export class Filters {
       placeholder: 'Seleccione una categoría',
       type: 'radio',
       options: [
-        { label: 'Héroe', value: 'heroe' },
-        { label: 'Villano', value: 'villano' },
-        { label: 'Anti-héroe', value: 'anti-heroe' },
+        { label: 'Todos', value: 'all', default: true },
+        { label: 'Héroe', value: 'hero', default: false },
+        { label: 'Villano', value: 'villain', default: false },
+        { label: 'Anti-héroe', value: 'anti-hero', default: false },
       ],
     },
     {
@@ -102,9 +88,9 @@ export class Filters {
       placeholder: 'Seleccione un estado',
       type: 'select',
       options: [
-        { label: 'Activo', value: 'activo' },
-        { label: 'Inactivo', value: 'inactivo' },
-        { label: 'Fallecido', value: 'fallecido' },
+        { label: 'Activo', value: 'active', default: false },
+        { label: 'Inactivo', value: 'inactive', default: false },
+        { label: 'Fallecido', value: 'deceased', default: false },
       ],
     },
   ]);
@@ -130,6 +116,7 @@ export class Filters {
 
   /** Emite el filtro aplicado ya normalizado (trim), como objeto parcial: { name } o { alias }. */
   filtersChange = output<Partial<FiltersQuery>>();
+  refreshHeroes = output<void>();
 
   constructor() {
     // Hidratación desde la URL con emitEvent: false: actualiza el control sin
@@ -186,5 +173,18 @@ export class Filters {
     if (field?.type === 'text' && field.maxLength) {
       this.heroesUtilsService.enforceMaxLength(event, control, field.maxLength);
     }
+  }
+
+  resetFilters(): void {
+    this.filterConfig().forEach((field) => {
+      const control = this.filterForm.get(field.id)!;
+      const value = field.type === 'radio' ? 'all' : '';
+      // emitEvent reemplaza el valor que el debounce todavía no aplicó,
+      // así un texto a medio tipear no vuelve a la URL después de limpiar.
+      if (control.value !== '') {
+        control.setValue(value);
+      }
+    });
+    this.refreshHeroes.emit();
   }
 }

@@ -1,7 +1,11 @@
 <div class="min-h-screen">
   <div class="max-w-7xl mx-auto pt-6">
     <!-- Los filtros siempre estan visibles: hidratados desde la URL y escritos en ella al aplicar -->
-    <app-filters [initialFilters]="filters()" (filtersChange)="applyFilters($event)"></app-filters>
+    <app-filters
+      [initialFilters]="filters()"
+      (filtersChange)="applyFilters($event)"
+      (refreshHeroes)="clearFilters()"
+    ></app-filters>
 
     <!-- Fila de conteo + selector (componente reutilizable) sobre la grilla: el selector
          de items por página queda arriba (sin scroll para cambiarlo). El pill se oculta
