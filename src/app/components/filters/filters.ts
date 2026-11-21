@@ -107,7 +107,8 @@ export class Filters {
       const controls: Record<string, FormControl<string>> = {};
       for (const field of this.filterConfig()) {
         const validators = field.maxLength ? [Validators.maxLength(field.maxLength)] : [];
-        controls[field.id] = new FormControl('', validators) as FormControl<string>;
+        const initialValue = field.type === 'radio' ? this.defaultValueOf(field) : '';
+        controls[field.id] = new FormControl(initialValue, validators) as FormControl<string>;
       }
       return controls as Partial<Record<keyof FiltersQuery, FormControl<string>>>;
     })(),
@@ -151,7 +152,10 @@ export class Filters {
       const initial = this.initialFilters();
       this.filterConfig().forEach((field) => {
         const control = this.filterForm.get(field.id)!;
-        const initialValue = initial[field.id] ?? '';
+        const initialValue =
+          field.type === 'radio' && !initial[field.id]
+            ? this.defaultValueOf(field)
+            : (initial[field.id] ?? '');
         if (control.value !== initialValue) {
           control.setValue(initialValue, { emitEvent: false });
         }
@@ -193,9 +197,9 @@ export class Filters {
   resetFilters(): void {
     this.filterConfig().forEach((field) => {
       const control = this.filterForm.get(field.id)!;
-      const value = field.type === 'radio' ? 'all' : '';
+      const value = field.type === 'radio' ? this.defaultValueOf(field) : '';
       // Al escribir el valor se actualiza formValue y, con él, hasChanges.
-      if (control.value !== '') {
+      if (control.value !== value) {
         control.setValue(value);
       }
     });
