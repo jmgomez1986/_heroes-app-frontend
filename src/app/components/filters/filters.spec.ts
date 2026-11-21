@@ -82,6 +82,14 @@ describe('Filters', () => {
       expect(buttonWithText('Aplicar filtros')?.disabled).toBe(true);
     });
 
+    it('deshabilita Aplicar filtros cuando la URL trae category=all', async () => {
+      fixture.componentRef.setInput('initialFilters', { category: 'all' } as FiltersQuery);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(buttonWithText('Aplicar filtros')?.disabled).toBe(true);
+    });
+
     it('deshabilita Aplicar filtros cuando el form es inválido', () => {
       component.filterForm.get('name')!.setValue('x'.repeat(21));
       fixture.detectChanges();
