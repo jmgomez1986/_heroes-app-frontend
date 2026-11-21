@@ -7,7 +7,7 @@
     <mat-expansion-panel-header>
       <mat-panel-title> Filtros </mat-panel-title>
     </mat-expansion-panel-header>
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-6">
+    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-6">
       @for (field of filterConfig(); track field.id) {
         <div class="flex flex-col gap-2">
           <label
@@ -100,7 +100,7 @@
                 <mat-radio-button
                   [value]="opt.value"
                   class="w-full rounded-lg border border-zinc-300 px-2 py-1.5 text-xs text-zinc-700 sm:px-2.5 sm:py-1.5 sm:text-sm"
-                  [checked]="opt.default"
+                  [checked]="opt.value === getControl(field.id).value"
                 >
                   {{ opt.label }}
                 </mat-radio-button>
