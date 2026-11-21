@@ -38,6 +38,7 @@ export default class HeroesPage {
       {
         label: 'Total de personajes',
         value: stats.total_elements,
+        sub: 'Total de Héroes del catálogo.',
         icon: 'groups',
         chips: [
           // Mismo estilo de chips de categoría que usan las cards de la grilla.

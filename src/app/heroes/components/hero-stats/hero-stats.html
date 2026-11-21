@@ -1,5 +1,54 @@
-<!-- Receta de card del proyecto (blanco, borde zinc-200, rounded-2xl, sombra suave). -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+<!-- MOBILE (< md): una sola tarjeta compacta con los 4 indicadores -->
+<div
+  class="mb-6 grid grid-cols-4 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white py-3 shadow-sm md:hidden"
+>
+  @for (stat of stats(); track stat.label; let first = $first; let last = $last) {
+    <div class="flex min-w-0 flex-col items-center justify-center px-1 text-center">
+      <!-- Etiqueta corta: saca "Total de personajes " para que entre en 1 línea -->
+      <span
+        class="flex max-w-full items-center gap-1 truncate text-[10px] font-semibold tracking-tight text-zinc-500 uppercase"
+      >
+        @if (!first) {
+          <span
+            class="h-1.5 w-1.5 shrink-0 rounded-full"
+            [class.bg-emerald-500]="stat.icon === 'check_circle'"
+            [class.bg-amber-400]="stat.icon === 'pause'"
+            [class.bg-rose-500]="stat.icon === 'person_off'"
+          ></span>
+        }
+        <span class="truncate">
+          {{
+            stat.label.replace('Total de personajes ', '').replace('Total de personajes', 'Total')
+          }}
+        </span>
+      </span>
+
+      <!-- Valor + chips compactos en la primera card (ej. 18H · 7V) -->
+      <div class="mt-1.5 flex flex-wrap items-baseline justify-center gap-1">
+        <span
+          class="text-lg font-extrabold leading-none"
+          [class.text-violet-950]="first"
+          [class.text-emerald-600]="stat.icon === 'check_circle'"
+          [class.text-amber-500]="stat.icon === 'pause'"
+          [class.text-rose-600]="stat.icon === 'person_off'"
+        >
+          {{ stat.value }}
+        </span>
+
+        @if (stat.chips?.length) {
+          <span class="text-[9px] font-semibold leading-none text-zinc-400">
+            @for (chip of stat.chips; track chip.label; let isLastChip = $last) {
+              <span>{{ formatCompactChip(chip.label) }}{{ !isLastChip ? '·' : '' }}</span>
+            }
+          </span>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Design for DESKTOP View (<= md) -> 4cards, una por indicador -->
+<div class="hidden md:grid md:grid-cols-4 gap-4 mb-6">
   @for (stat of stats(); track stat.label) {
     <div class="stat-card rounded-2xl border border-zinc-200 bg-white shadow-sm p-5 flex flex-col">
       <div class="flex items-center gap-2 text-sm font-medium text-zinc-500">

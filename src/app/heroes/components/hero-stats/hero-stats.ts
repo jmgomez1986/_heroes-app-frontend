@@ -14,4 +14,9 @@ import { StatCardEntry } from '../../../interfaces/heroesStats.interface';
  * Grilla responsive: 1 columna en mobile, 3 desde sm. */
 export class HeroStats {
   readonly stats = input<StatCardEntry[]>([]);
+  formatCompactChip = (label: string): string => {
+    const [count, word] = label.trim().split(/\s+/);
+    const initial = word?.[0]?.toUpperCase() ?? '';
+    return `${count}${initial}`;
+  };
 }
