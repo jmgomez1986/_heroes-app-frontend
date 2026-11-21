@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { HeroErrorStateMatcher } from '../../shared/error-state-matcher';
 import { HeroesUtilsService } from '../../services/heroes-utils';
 import { FilterFieldConfig, FiltersQuery } from '../../interfaces/heroesFilters.interface';
@@ -29,6 +31,7 @@ import { FilterFieldConfig, FiltersQuery } from '../../interfaces/heroesFilters.
     MatRadioModule,
     MatButtonModule,
     MatIconModule,
+    MatExpansionModule,
   ],
   templateUrl: './filters.html',
 })
@@ -37,6 +40,8 @@ export class Filters {
   // Inyeccion de la referencia de destruccion para la desubcripcion
   private destroyRef = inject(DestroyRef);
   private readonly heroesUtilsService = inject(HeroesUtilsService);
+
+  readonly panelOpenState = signal(false);
 
   /** Configuración de campos de filtro. Agregar un filtro nuevo = agregar una entrada aquí. */
   readonly filterConfig = input<FilterFieldConfig[]>([
