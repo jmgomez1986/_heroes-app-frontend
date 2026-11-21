@@ -186,6 +186,7 @@ export class Filters {
     if (this.filterForm.invalid || !this.hasChanges()) {
       return;
     }
+    this.panelOpenState.set(false);
     this.filtersChange.emit(this.filterForm.value);
   }
 
@@ -198,6 +199,7 @@ export class Filters {
         control.setValue(value);
       }
     });
+    this.panelOpenState.set(false);
     this.refreshHeroes.emit();
   }
 }
