@@ -1,7 +1,4 @@
-export interface Filters {
-  name?: string;
-  alias?: string;
-}
+import { FiltersQuery } from './heroesFilters.interface';
 
 export interface Hero {
   _id: string;
@@ -26,7 +23,7 @@ export type HeroPayload = Omit<Hero, '_id' | 'slug'>;
 export interface HeroesGridResourceParams {
   page: number;
   size: number;
-  query: Filters;
+  query: FiltersQuery;
   refreshKey: number;
 }
 
@@ -63,7 +60,7 @@ export interface DeleteHeroResponse {
 }
 
 // Respuesta real del backend con los contadores del catalogo (GET /heroes/stats).
-export interface HeroStats {
+export interface HeroStatsResponse {
   total_elements: number;
   total_heroes: number;
   total_villains: number;

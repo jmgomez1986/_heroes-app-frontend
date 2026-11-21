@@ -8,7 +8,7 @@ import {
   EditHeroResponse,
   GetHeroesResponse,
   Hero,
-  HeroStats,
+  HeroStatsResponse,
   NewHeroResponse,
   UploadImageResponse,
 } from '../interfaces/heroes.interface';
@@ -99,8 +99,8 @@ describe('HeroesService', () => {
   });
 
   it('getStats hace GET a /heroes/stats y devuelve el contrato del backend', () => {
-    const mockStats: HeroStats = { total_elements: 42, total_heroes: 30, total_villains: 12, total_active: 21, total_inactive: 3, total_deceased: 1 };
-    let result: HeroStats | undefined;
+    const mockStats: HeroStatsResponse = { total_elements: 42, total_heroes: 30, total_villains: 12, total_active: 21, total_inactive: 3, total_deceased: 1 };
+    let result: HeroStatsResponse | undefined;
 
     service.getStats().subscribe((res) => (result = res));
 

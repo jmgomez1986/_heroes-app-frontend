@@ -18,11 +18,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import {
-  Filters as FiltersQuery,
-  GetHeroesResponse,
-  HeroesGridResourceParams,
-} from '../../../interfaces/heroes.interface';
+import { GetHeroesResponse, HeroesGridResourceParams } from '../../../interfaces/heroes.interface';
 import { HeroesService } from '../../../services/heroes';
 import { HeroGridCard } from '../hero-grid-card/hero-grid-card';
 import { HeroCountSelector } from '../hero-count-selector/hero-count-selector';
@@ -34,6 +30,7 @@ import {
   MAX_ITEMS_PER_PAGE,
 } from '../../../shared/pagination.constants';
 import { I18N } from '../../../shared/i18n/es';
+import { FiltersQuery } from '../../../interfaces/heroesFilters.interface';
 
 @Component({
   selector: 'app-heroes-grid',
@@ -63,14 +60,16 @@ export class HeroesGrid {
     initialValue: this.route.snapshot.queryParamMap,
   });
 
-  /** Objeto único de filtros (vista de la URL): solo los filtros con valor. */
+  /** Objeto único de filtros (vista de la URL): solo los filtros con valor.
+   * Cada key del formulario tiene su param; al recargar, el form se hidrata de acá. */
   readonly filters = computed<FiltersQuery>(() => {
     const params = this.queryParams();
-    const name = params.get('name')?.trim();
-    const alias = params.get('alias')?.trim();
     const filters: FiltersQuery = {};
-    if (name) filters.name = name;
-    if (alias) filters.alias = alias;
+    const keys = ['name', 'alias', 'team', 'universe', 'category', 'status'] as const;
+    for (const key of keys) {
+      const value = params.get(key)?.trim();
+      if (value) filters[key] = value;
+    }
     return filters;
   });
 
@@ -167,6 +166,28 @@ export class HeroesGrid {
 
   refreshHeroes() {
     this.heroesResource.reload();
+  }
+
+  /** Limpia todos los filtros de la URL y vuelve a pedir el listado.
+   * El formulario se vacía cuando la URL (fuente de verdad) llega sin filtros.
+   * Si la URL ya estaba limpia y en la página 1, el navigate no cambia params:
+   * refreshLoad fuerza el GET igual. */
+  clearFilters(): void {
+    const queryChanges =
+      Object.keys(this.filters()).length > 0 || this.currentPage() !== DEFAULT_PAGE;
+    this.navigate({
+      name: undefined,
+      alias: undefined,
+      team: undefined,
+      universe: undefined,
+      category: undefined,
+      status: undefined,
+      page: DEFAULT_PAGE,
+      elements_per_page: this.pageSize(),
+    });
+    if (!queryChanges) {
+      this.heroesUtilsService.refreshLoad();
+    }
   }
 
   private goToPage(page: number): void {

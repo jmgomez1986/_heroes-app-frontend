@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 
 import HeroesPage from './heroes-page';
 import { HeroesService } from '../../services/heroes';
-import { GetHeroesResponse, HeroStats } from '../../interfaces/heroes.interface';
+import { GetHeroesResponse, HeroStatsResponse } from '../../interfaces/heroes.interface';
 
 const createMockResponse = (): GetHeroesResponse => ({
   total_pages: 1,
@@ -14,7 +14,7 @@ const createMockResponse = (): GetHeroesResponse => ({
   data: [],
 });
 
-const createMockStats = (): HeroStats => ({
+const createMockStats = (): HeroStatsResponse => ({
   total_elements: 42,
   total_heroes: 30,
   total_villains: 12,
