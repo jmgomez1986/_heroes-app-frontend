@@ -127,17 +127,20 @@ export class Filters {
     return field.options?.find((opt) => opt.default)?.value ?? '';
   }
 
+  /** "Todos" y el valor vacío son el mismo estado: sin filtro. */
+  private normalizedValue(field: FilterFieldConfig, value: string | undefined): string {
+    return field.type === 'radio' && value === this.defaultValueOf(field) ? '' : (value ?? '');
+  }
+
   /** Hay cambios cuando el form difiere de los filtros hidratados desde la URL. */
   readonly hasChanges = computed(() => {
     const current = this.formValue();
     const initial = this.initialFilters();
-    return this.filterConfig().some((field) => {
-      const currentValue =
-        field.type === 'radio' && current[field.id] === this.defaultValueOf(field)
-          ? ''
-          : (current[field.id] ?? '');
-      return currentValue !== (initial[field.id] ?? '');
-    });
+    return this.filterConfig().some(
+      (field) =>
+        this.normalizedValue(field, current[field.id]) !==
+        this.normalizedValue(field, initial[field.id]),
+    );
   });
 
   /** Emite el valor del form al aplicar; la grilla se encarga de recortar y omitir vacíos. */
