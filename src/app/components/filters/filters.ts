@@ -45,14 +45,14 @@ export class Filters {
     {
       id: 'name',
       label: 'Nombre a buscar:',
-      placeholder: 'Ingrese el nombre del Héroe a buscar',
+      placeholder: 'Ingrese el nombre del Héroe',
       type: 'text',
       maxLength: 20,
     },
     {
       id: 'alias',
       label: 'Alias a buscar:',
-      placeholder: 'Ingrese el alias del Héroe a buscar',
+      placeholder: 'Ingrese el alias del Héroe',
       type: 'text',
       maxLength: 20,
     },
@@ -132,24 +132,6 @@ export class Filters {
         }
       });
     });
-
-    // Suscripción con debounce por cada campo. Cubre text, select y radio
-    // (todos disparan valueChanges al cambiar).
-    this.filterConfig().forEach((field) => {
-      const control = this.filterForm.get(field.id)!;
-      control.valueChanges
-        .pipe(
-          debounceTime(1000),
-          map((value) => value?.trim() ?? ''),
-          // Se emite el query normalizado siempre que el control sea válido.
-          filter(() => control.valid),
-          distinctUntilChanged(),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe((query) => {
-          this.filtersChange.emit({ [field.id]: query });
-        });
-    });
   }
 
   /**
@@ -173,6 +155,10 @@ export class Filters {
     if (field?.type === 'text' && field.maxLength) {
       this.heroesUtilsService.enforceMaxLength(event, control, field.maxLength);
     }
+  }
+
+  applyFilters(): void {
+    this.filtersChange.emit(this.filterForm.value);
   }
 
   resetFilters(): void {

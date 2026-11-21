@@ -274,4 +274,40 @@ describe('Filters', () => {
       expect(component.filterForm.get('name')!.value?.length).toBe(19);
     });
   });
+
+  describe('botón Limpiar filtros', () => {
+    it('renderiza el botón, no muestra "Aplicar filtros" y ejecuta resetFilters al hacer click', async () => {
+      const buttons = Array.from(
+        fixture.nativeElement.querySelectorAll('button'),
+      ) as HTMLButtonElement[];
+      const button = buttons.find((b) => b.textContent?.trim() === 'Limpiar filtros');
+      expect(button).toBeDefined();
+      expect(button?.textContent?.trim()).toBe('Limpiar filtros');
+      expect(fixture.nativeElement.textContent).not.toContain('Aplicar filtros');
+
+      const resetSpy = vi.spyOn(component, 'resetFilters');
+      button?.click();
+      await fixture.whenStable();
+
+      expect(resetSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('X del select de estado', () => {
+    it('limpia el estado al hacer click en la X', async () => {
+      component.filterForm.get('status')!.setValue('active');
+      fixture.detectChanges();
+
+      const buttons = Array.from(
+        fixture.nativeElement.querySelectorAll('button'),
+      ) as HTMLButtonElement[];
+      const clearButton = buttons.find((b) => b.getAttribute('aria-label') === 'Limpiar estado');
+      expect(clearButton).toBeDefined();
+
+      clearButton?.click();
+      await fixture.whenStable();
+
+      expect(component.filterForm.get('status')!.value).toBe('');
+    });
+  });
 });
