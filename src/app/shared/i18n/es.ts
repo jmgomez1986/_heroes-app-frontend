@@ -94,7 +94,7 @@ export const I18N = {
   },
   common: {
     heroes: 'héroes',
-    more: ' más',
+    more: 'más',
   },
   image: {
     imageNotAvailable: 'Imagen no disponible',
@@ -174,5 +174,6 @@ export const I18N = {
     breadcrumb: 'Miga de pan',
     principalNav: 'Navegación principal',
     pageSelection: 'Seleccionar página',
+    removePower: 'Remover el poder {{power}}',
   },
 } as const;

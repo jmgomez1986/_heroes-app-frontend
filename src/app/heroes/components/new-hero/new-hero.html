@@ -152,7 +152,7 @@
             @for (power of reactivePowersWords(); track $index) {
               <mat-chip-row (removed)="removeReactivePowers(power)">
                 {{ power }}
-                <button matChipRemove [attr.]="'Remover el poder ' + power">
+                <button matChipRemove [attr.aria-label]="removePowerLabel(power)">
                   <mat-icon aria-hidden="true">cancel</mat-icon>
                 </button>
               </mat-chip-row>

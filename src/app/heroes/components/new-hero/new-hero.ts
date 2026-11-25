@@ -159,9 +159,13 @@ export default class NewHero {
   /**
    * El aviso de límite se muestra SOLO al alcanzar exactamente el máximo (comportamiento
    * documentado y pineado por tests): ni por debajo ni al superarlo.
-   */
-  showLimitHint(controlName: TextFieldName): boolean {
+   */  showLimitHint(controlName: TextFieldName): boolean {
     return this.heroForm.controls[controlName].value.length === MAX_LENGTHS[controlName];
+  }
+
+  /** aria-label del botón que remueve un poder del chip. */
+  removePowerLabel(power: string): string {
+    return translate(this.i18nTexts.ariaLabel.removePower, { power });
   }
 
   removeReactivePowers(newPower: string): void {

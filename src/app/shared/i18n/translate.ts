@@ -8,8 +8,8 @@ type Placeholders<S extends string> = S extends `${string}{{${infer Name}}}${inf
  * Los placeholders sin valor se dejan intactos para detectarlos fácilmente.
  *
  * @example
- * translate(I18N.filters.maxLength, { maxLength: 20 });
- * // 'Máximo 20 caracteres'
+ * translate(I18N.maxLengthMessageGeneral, { maxLength: 20 });
+ * // 'El campo debe tener un máximo de 20 caracteres.'
  */
 export const translate = <S extends string>(
   template: S,
