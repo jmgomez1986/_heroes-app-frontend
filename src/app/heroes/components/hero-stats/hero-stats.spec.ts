@@ -5,9 +5,11 @@ import { StatCardEntry } from '../../../interfaces/heroesStats.interface';
 
 const createEntry = (
   overrides: Partial<StatCardEntry> = {},
-  label = 'Total de personajes',
+  title = 'Total de personajes',
 ): StatCardEntry => ({
-  label,
+  id: 1,
+  title,
+  subtitle: 'Dataset completo',
   value: 42,
   icon: 'groups',
   chips: [
@@ -32,21 +34,22 @@ describe('HeroStats', () => {
 
   it('renderiza una card por entrada: escala a N cards desde el input', async () => {
     fixture.componentRef.setInput('stats', [
-      createEntry(),
-      createEntry({ icon: undefined, chips: undefined }, 'Otra métrica'),
-      createEntry({ chips: undefined, icon: undefined }, 'Tercera métrica'),
+      createEntry({ id: 1 }),
+      createEntry({ id: 2, icon: undefined, chips: undefined }, 'Otra métrica'),
+      createEntry({ id: 3, chips: undefined, icon: undefined }, 'Tercera métrica'),
     ]);
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelectorAll('.stat-card').length).toBe(3);
   });
 
-  it('renderiza label, valor, icono, chips (con sus clases) y sub de cada entrada', async () => {
-    fixture.componentRef.setInput('stats', [createEntry({ sub: 'Dataset completo' })]);
+  it('renderiza title, titleMobile, valor, icono, chips (con sus clases) y subtitle', async () => {
+    fixture.componentRef.setInput('stats', [createEntry({ titleMobile: 'Totales' })]);
     await fixture.whenStable();
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Total de personajes');
+    expect(host.textContent).toContain('Totales');
     expect(host.textContent).toContain('42');
     expect(host.querySelector('mat-icon')?.textContent).toContain('groups');
     expect(host.textContent).toContain('30 Héroes');
@@ -61,13 +64,17 @@ describe('HeroStats', () => {
     expect(heroChip?.className).toContain('text-green-700');
   });
 
-  it('acepta entradas sin icono, chips ni sub (todos los campos opcionales)', async () => {
-    fixture.componentRef.setInput('stats', [createEntry({ icon: undefined, chips: undefined, sub: undefined })]);
+  it('acepta entradas sin icono ni chips y oculta el subtitle vacío', async () => {
+    fixture.componentRef.setInput('stats', [
+      createEntry({ icon: undefined, chips: undefined, subtitle: '' }),
+    ]);
     await fixture.whenStable();
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelectorAll('.stat-card').length).toBe(1);
     expect(host.querySelector('mat-icon')).toBeNull();
+    expect(host.textContent).not.toContain('30 Héroes');
+    expect(host.textContent).not.toContain('Dataset completo');
   });
 
   it('sin entradas no renderiza cards', async () => {

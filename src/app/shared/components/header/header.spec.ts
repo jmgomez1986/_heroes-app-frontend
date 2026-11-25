@@ -48,7 +48,7 @@ describe('Header', () => {
     expect(brand?.textContent?.trim()).toBe('Heroes App');
   });
 
-  it('debería renderizar los links de navegación y el CTA "Registrar Héroe" hacia /new-hero', () => {
+  it('debería renderizar los links de navegación y el CTA "Agregar un nuevo héroe" hacia /new-hero', () => {
     fixture.detectChanges();
     const links: HTMLAnchorElement[] = Array.from(
       fixture.nativeElement.querySelectorAll('nav a'),
@@ -58,7 +58,7 @@ describe('Header', () => {
     expect(labels).toContain('Nuevo Héroe');
 
     const cta = fixture.nativeElement.querySelector('button');
-    expect(cta?.textContent).toContain('Registrar Héroe');
+    expect(cta?.textContent).toContain('Agregar un nuevo héroe');
     // El CTA navega al formulario de alta (el atributo estático routerLink
     // se preserva en el DOM).
     expect(cta?.getAttribute('routerlink')).toBe('/new-hero');
