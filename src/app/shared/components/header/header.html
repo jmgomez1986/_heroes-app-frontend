@@ -10,7 +10,7 @@
 
     <nav
       class="ml-auto flex shrink-0 items-center gap-1 sm:gap-4"
-      aria-label="Navegación principal"
+      [aria-label]="i18n.ariaLabel.principalNav"
     >
       <a
         routerLink="/heroes"
@@ -18,7 +18,7 @@
         [routerLinkActiveOptions]="{ exact: false }"
         class="rounded-md px-2 py-1 text-sm text-zinc-600 transition-colors hover:text-indigo-600"
       >
-        Catálogo
+        {{i18n.links.catalog}}
       </a>
       <!-- En mobile el link de texto queda oculto: el CTA cubre la misma navegación (S1). -->
       <a
@@ -27,7 +27,7 @@
         [routerLinkActiveOptions]="{ exact: true }"
         class="hidden rounded-md px-2 py-1 text-sm text-zinc-600 transition-colors hover:text-indigo-600 lg:block"
       >
-        Nuevo Héroe
+        {{i18n.links.newHero}}
       </a>
       <button
         matButton="filled"
@@ -40,8 +40,8 @@
         >
           add
         </mat-icon>
-        <span class="sm:hidden">Héroe</span>
-        <span class="hidden sm:inline">Registrar Héroe</span>
+        <span class="sm:hidden">{{i18n.buttons.addHeroMobile}}</span>
+        <span class="hidden sm:inline">{{i18n.buttons.addHero}}</span>
       </button>
     </nav>
   </div>

@@ -22,6 +22,11 @@ import { MatIcon } from '@angular/material/icon';
 import { LoadingOverlay } from '../../../shared/components/loading-overlay/loading-overlay';
 import { I18N } from '../../../shared/i18n/es';
 
+/** Claves válidas del diccionario de estados. */
+type HeroStatusKey = keyof typeof I18N.heroStatus;
+/** Claves válidas del diccionario de categorias. */
+type HeroCategoryKey = keyof typeof I18N.heroCategory;
+
 @Component({
   selector: 'app-hero-grid-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +34,7 @@ import { I18N } from '../../../shared/i18n/es';
   templateUrl: './hero-grid-card.html',
 })
 export class HeroGridCard {
+  readonly i18n = I18N;
   hero = input.required<Hero>();
   isPriorityImg = input<boolean>(false);
   heroDeleted = output<void>();
@@ -41,14 +47,14 @@ export class HeroGridCard {
 
   deleteHero() {
     Swal.fire({
-      title: I18N.heroes.card.confirmDeleteTitle,
-      text: I18N.heroes.card.confirmDeleteText,
+      title: I18N.alerts.confirmDeleteTitle,
+      text: I18N.alerts.confirmDeleteText,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: I18N.heroes.card.confirmButton,
-      cancelButtonText: I18N.heroes.card.cancelButton,
+      confirmButtonText: this.i18n.buttons.delete,
+      cancelButtonText: this.i18n.buttons.cancel,
     }).then((result) => {
       if (result.isConfirmed) {
         this.isDeleting.set(true);
@@ -59,8 +65,8 @@ export class HeroGridCard {
             next: () => {
               this.isDeleting.set(false);
               Swal.fire({
-                title: I18N.heroes.card.deleteSuccessTitle,
-                text: I18N.heroes.card.deleteSuccessText,
+                title: I18N.alerts.deleteSuccessTitle,
+                text: I18N.alerts.deleteSuccessText,
                 icon: 'success',
               });
               this.heroDeleted.emit();
@@ -69,8 +75,8 @@ export class HeroGridCard {
               this.isDeleting.set(false);
               console.error('No se pudo eliminar el héroe:', err);
               Swal.fire({
-                title: I18N.heroes.card.deleteErrorTitle,
-                text: I18N.heroes.card.deleteErrorText,
+                title: I18N.alerts.deleteErrorTitle,
+                text: I18N.alerts.deleteErrorText,
                 icon: 'error',
               });
             },
@@ -84,5 +90,23 @@ export class HeroGridCard {
   }
   viewHero() {
     this.router.navigate([`/view-hero/${this.hero().slug}`]);
+  }
+  /**
+   * Devuelve el texto traducido del estado del héroe.
+   * Normaliza a minúsculas para coincidir con las claves de heroStatusTexts
+   * y hace fallback al valor crudo si no encuentra coincidencia.
+   */
+  getStatusText(status: string): string {
+    const key = status.toLowerCase() as HeroStatusKey;
+    return key in this.i18n.heroStatus ? this.i18n.heroStatus[key] : status;
+  }
+  /**
+   * Devuelve el texto traducido de la categoría del héroe.
+   * Normaliza a minúsculas para coincidir con las claves de heroCategoryTexts
+   * y hace fallback al valor crudo si no encuentra coincidencia.
+   */
+  getCategoryText(category: string): string {
+    const key = category.toLowerCase() as HeroCategoryKey;
+    return key in this.i18n.heroCategory ? this.i18n.heroCategory[key] : category;
   }
 }

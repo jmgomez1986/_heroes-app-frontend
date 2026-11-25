@@ -14,13 +14,15 @@
       [shown]="countSummary()?.shown"
       [total]="countSummary()?.total"
       [pageSize]="pageSize()"
-      [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
+      [pageSizeOptions]="itemsPerPageOptions"
       (pageSizeChange)="handlePageSizeChange($event)"
     ></app-hero-count-selector>
 
     <!-- Cuando hay error del GET, el detalle va en el SweetAlert: la grilla muestra el estado vacío -->
     @if (heroesResource.error()) {
-      <div class="col-span-full text-center text-zinc-500 py-10">No se encontraron resultados.</div>
+      <div class="col-span-full text-center text-zinc-500 py-10">
+        {{ i18nTexts.messages.noResults }}
+      </div>
     } @else if (heroesResource.isLoading()) {
       <div class="flex justify-center items-center h-64">
         <mat-spinner diameter="40"></mat-spinner>
@@ -35,22 +37,18 @@
           ></app-hero-grid-card>
         } @empty {
           <div class="col-span-full text-center text-zinc-500 py-10">
-            No se encontraron resultados.
+            {{ i18nTexts.messages.noResults }}
           </div>
         }
       </div>
     }
 
-    <!-- El máximo de opciones respeta siempre el límite del backend (MAX_ITEMS_PER_PAGE).
-         hasValue() evita leer value() en estado de error: leerlo ahí lanza un ResourceValueError.
-         hidePageSize: el selector de items por página vive arriba (app-hero-count-selector),
-         abajo queda solo el cambio de página. -->
     <mat-paginator
-      aria-label="Seleccionar página"
+      [aria-label]="i18nTexts.ariaLabel.pageSelection"
       [pageIndex]="currentPage() - 1"
       [length]="heroesResource.hasValue() ? heroesResource.value().total_elements : 0"
       [pageSize]="pageSize()"
-      [pageSizeOptions]="[5, 10, 25, maxItemsPerPage]"
+      [pageSizeOptions]="itemsPerPageOptions"
       [hidePageSize]="true"
       (page)="handlePageEvent($event)"
     >

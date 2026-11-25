@@ -11,9 +11,11 @@ export interface StatCardChip {
 /** Entrada de datos de una stat card. Todos los campos salvo label/value son opcionales:
  * agregar una card nueva es solo agregar una entrada al array (renderer escalable). */
 export interface StatCardEntry {
-  label: string;
+  id: number;
+  title: string;
+  titleMobile?: string;
+  subtitle: string;
   value: string | number;
   icon?: string;
   chips?: StatCardChip[];
-  sub?: string;
 }

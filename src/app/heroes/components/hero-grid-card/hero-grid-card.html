@@ -16,7 +16,7 @@
         <div
           class="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-700 shadow-sm"
         >
-          {{ hero().status }}
+          {{ getStatusText(hero().status) }}
         </div>
       </div>
 
@@ -41,7 +41,7 @@
           <!-- Alias placeholder -->
         </div>
         <div class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-          {{ hero().category }}
+          {{ getCategoryText(hero().category) }}
         </div>
       </div>
 
@@ -59,14 +59,14 @@
 
       <!-- Powers -->
       <div class="space-y-2">
-        <h4 class="font-medium text-sm">Powers:</h4>
+        <h4 class="font-medium text-sm">{{i18n.fieldsLabel.heroPowers}}:</h4>
         <div class="flex flex-wrap gap-1">
           @if (hero().powers) {
             @for (power of hero().powers.slice(0, 3); track $index) {
               <mat-chip class="h-5">{{ power }}</mat-chip>
             }
             @if (hero().powers.length > 3) {
-              <mat-chip class="text-xs opacity-60">{{ hero().powers.length - 3 }} más</mat-chip>
+              <mat-chip class="text-xs opacity-60">{{ hero().powers.length - 3 }} {{i18n.common.more}}</mat-chip>
             }
           }
         </div>
@@ -77,31 +77,31 @@
     <app-loading-overlay [show]="isDeleting()"></app-loading-overlay>
     <button
       matButton="elevated"
-      class="w-full sm:flex-1 bg-green-600! text-white!"
-      aria-label="Ver héroe"
+      class="w-full sm:flex-1 bg-green-500! text-white!"
+      [aria-label]="i18n.buttons.view"
       (click)="viewHero()"
     >
       <mat-icon>visibility</mat-icon>
-      Consultar
+      {{i18n.buttons.view}}
     </button>
     <button
       matButton="elevated"
       class="w-full sm:flex-1 bg-white! text-indigo-700! border! border-indigo-300!"
-      aria-label="Editar héroe"
+      [aria-label]="i18n.buttons.edit"
       (click)="editHero()"
     >
       <mat-icon>edit</mat-icon>
-      Editar
+      {{i18n.buttons.edit}}
     </button>
     <button
       matButton="elevated"
-      class="w-full sm:flex-1 bg-red-600! text-white!"
-      aria-label="Eliminar héroe"
+      class="w-full sm:flex-1 bg-red-500! text-white!"
+      [aria-label]="i18n.buttons.delete"
       (click)="deleteHero()"
       [disabled]="isDeleting()"
     >
       <mat-icon>delete</mat-icon>
-      Eliminar
+      {{i18n.buttons.delete}}
     </button>
   </mat-card-actions>
 </mat-card>

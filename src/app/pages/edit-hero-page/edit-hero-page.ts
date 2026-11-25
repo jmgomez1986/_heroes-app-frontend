@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, input, resource } from '@an
 import { HeroesService } from '../../services/heroes';
 import { firstValueFrom } from 'rxjs';
 import EditHero from '../../heroes/components/edit-hero/edit-hero';
-import { Mode } from '../../interfaces/shared.interface';
+import { I18N } from '../../shared/i18n/es';
+import { Mode } from '../../constants/defaultValues';
 
 @Component({
   selector: 'app-edit-hero-page',
@@ -11,6 +12,7 @@ import { Mode } from '../../interfaces/shared.interface';
   templateUrl: './edit-hero-page.html',
 })
 export default class EditHeroPage {
+  readonly i18nText = I18N;
   heroSlug = input.required<string>();
   /** El modo ('edit' | 'view') es enlazado por el router (withComponentInputBinding)
    * desde el data de la ruta. */

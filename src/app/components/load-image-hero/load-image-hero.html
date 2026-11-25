@@ -26,9 +26,9 @@
           >
             <mat-icon aria-hidden="true" class="text-[32px]">cloud_upload</mat-icon>
           </div>
-          <span class="text-base font-semibold text-zinc-900">Selecciona la fotografía táctica</span>
+          <span class="text-base font-semibold text-zinc-900">{{imageTexts.imageSelection}}</span>
           <span class="max-w-60 text-sm text-zinc-500"
-            >PNG o JPG hasta 1 MB. Resolución recomendada: 1200 × 1600 px.</span
+            >{{imageTexts.allowedFormats}}</span
           >
         } @else {
           <div
@@ -36,9 +36,9 @@
           >
             <mat-icon aria-hidden="true" class="text-[32px]">hide_image</mat-icon>
           </div>
-          <span class="text-base font-semibold text-zinc-900">Sin imagen</span>
+          <span class="text-base font-semibold text-zinc-900">{{imageTexts.withoutImage}}</span>
           <span class="max-w-60 text-sm text-zinc-500"
-            >Este héroe todavía no tiene fotografía.</span
+            >{{imageTexts.stillNotImage}}</span
           >
         }
       </div>
@@ -59,7 +59,7 @@
       <div
         class="absolute bottom-3 left-3 right-3 z-20 hidden items-center justify-between rounded-lg bg-zinc-900/80 px-2 py-1 text-white backdrop-blur-sm group-hover:flex"
       >
-        <span class="text-xs font-medium">Haz clic para reemplazar</span>
+        <span class="text-xs font-medium">{{imageTexts.replaceImage}}</span>
         <mat-icon aria-hidden="true" class="text-[16px]">edit</mat-icon>
       </div>
     }

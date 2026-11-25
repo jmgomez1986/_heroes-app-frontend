@@ -1,26 +1,26 @@
 <div class="min-h-screen bg-zinc-50">
   <div class="max-w-7xl mx-auto p-6">
     <div class="text-left mb-8">
-      <h1 class="text-5xl font-bold bg-linear-to-r from-violet-700 to-indigo-600 bg-clip-text text-transparent mb-3">
-        {{ mode() === 'edit' ? 'Editar Héroe' : 'Ver Héroe' }}
+      <h1 class="text-5xl leading-tight pb-1 font-bold bg-linear-to-r from-violet-700 to-indigo-600 bg-clip-text text-transparent  mb-1">
+        {{ mode() === 'edit' ? i18nText.editHero.title : i18nText.viewHero.title }}
       </h1>
       <div class="h-1.5 w-24 rounded-full bg-linear-to-r from-indigo-600 to-violet-500 mb-4"></div>
       <p class="text-zinc-600 text-lg">
         {{
           mode() === 'edit'
-            ? 'Modifica un héroe o villano del catálogo.'
-            : 'Visualiza detalles de un héroe o villano del catálogo.'
+            ? i18nText.editHero.subtitle
+            : i18nText.newHero.subtitle
         }}
       </p>
     </div>
 
     <div>
       @if (heroeResource.isLoading()) {
-        <div class="text-gray-600 text-lg p-4">Cargando héroe...</div>
+        <div class="text-gray-600 text-lg p-4">{{i18nText.messages.loadingHero}}</div>
       } @else if (heroeResource.hasValue()) {
         <app-edit-hero [hero]="heroeResource.value()" [mode]="mode()"></app-edit-hero>
       } @else {
-        <div class="text-red-600 text-lg p-4">No se pudo cargar el héroe.</div>
+        <div class="text-red-600 text-lg p-4">{{i18nText.messages.loadingFailed}}</div>
       }
     </div>
   </div>

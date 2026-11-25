@@ -68,3 +68,23 @@ export interface HeroStatsResponse {
   total_inactive: number;
   total_deceased: number;
 }
+
+export interface HeroeCategory {
+  value: string;
+  viewValue: string;
+}
+
+/** Selección de imagen emitida al padre: archivo crudo y nombre del archivo. */
+export interface HeroImageSelection {
+  fileName: string | null;
+  file: File | null;
+}
+
+/**
+ * Segmento del breadcrumb: los anteriores son links navegables y el actual
+ * (link null) se muestra como texto plano.
+ */
+export interface BreadcrumbSegment {
+  label: string;
+  link: string | null;
+}

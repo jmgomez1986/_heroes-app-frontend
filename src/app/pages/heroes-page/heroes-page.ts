@@ -7,6 +7,7 @@ import { HeroesGrid } from '../../heroes/components/heroes-grid/heroes-grid';
 import { HeroesService } from '../../services/heroes';
 import { HeroStats } from '../../heroes/components/hero-stats/hero-stats';
 import { StatCardEntry, HeroesStatsDTO } from '../../interfaces/heroesStats.interface';
+import { I18N } from '../../shared/i18n/es';
 
 @Component({
   selector: 'app-heroes-page',
@@ -17,6 +18,8 @@ import { StatCardEntry, HeroesStatsDTO } from '../../interfaces/heroesStats.inte
 
 // Para que funcione el import del lazyLoading en el ruteo, la clase hay que exportrla por 'default'
 export default class HeroesPage {
+  readonly i18nTexts = I18N;
+
   private heroesService = inject(HeroesService);
 
   /** Datos de GET /heroes/stats vía resource (misma convención que la grilla).
@@ -36,33 +39,47 @@ export default class HeroesPage {
     const stats = this.heroStatsResource.value();
     return [
       {
-        label: 'Total de personajes',
+        id: 1,
+        title: this.i18nTexts.stats.totalTitle,
+        titleMobile: this.i18nTexts.stats.totalMobileTitle,
+        subtitle: this.i18nTexts.stats.totalSubtitle,
         value: stats.total_elements,
-        sub: 'Total de Héroes del catálogo.',
         icon: 'groups',
         chips: [
           // Mismo estilo de chips de categoría que usan las cards de la grilla.
-          { label: `${stats.total_heroes} Héroes`, classes: 'bg-green-100 text-green-700' },
-          { label: `${stats.total_villains} Villanos`, classes: 'bg-red-100 text-red-700' },
+          {
+            label: `${stats.total_heroes} ${this.i18nTexts.stats.totalHeroes}`,
+            classes: 'bg-green-100 text-green-700',
+          },
+          {
+            label: `${stats.total_villains} ${this.i18nTexts.stats.totalVillains}`,
+            classes: 'bg-red-100 text-red-700',
+          },
         ],
       },
       {
-        label: 'Total de personajes Activos',
+        id: 2,
+        title: this.i18nTexts.stats.totalActiveTitle,
+        titleMobile: this.i18nTexts.stats.totalActiveMobileTitle,
+        subtitle: this.i18nTexts.stats.totalActiveSubtitle,
         value: stats.total_active,
-        sub: 'Héroes activos al día de la fecha.',
         icon: 'check_circle',
         chips: [],
       },
       {
-        label: 'Total de personajes Inactivos',
-        sub: 'Héroes que ya no prestan sus servicios.',
+        id: 3,
+        title: this.i18nTexts.stats.totalInactiveTitle,
+        titleMobile: this.i18nTexts.stats.totalInactiveMobileTitle,
+        subtitle: this.i18nTexts.stats.totalInactiveSubtitle,
         value: stats.total_inactive,
         icon: 'pause',
         chips: [],
       },
       {
-        label: 'Total de personajes Fallecidos',
-        sub: 'Héroes que ya no están entre nosotros.',
+        id: 4,
+        title: this.i18nTexts.stats.totalDeceasedTitle,
+        titleMobile: this.i18nTexts.stats.totalDeceasedMobileTitle,
+        subtitle: this.i18nTexts.stats.totalDeceasedSubtitle,
         value: stats.total_deceased,
         icon: 'person_off',
         chips: [],

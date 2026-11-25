@@ -20,6 +20,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { HeroErrorStateMatcher } from '../../shared/error-state-matcher';
 import { HeroesUtilsService } from '../../services/heroes-utils';
 import { FilterFieldConfig, FiltersQuery } from '../../interfaces/heroesFilters.interface';
+import { I18N } from '../../shared/i18n/es';
+import { translate } from '../../shared/i18n/translate';
 
 @Component({
   selector: 'app-filters',
@@ -40,59 +42,61 @@ export class Filters {
   matcher = new HeroErrorStateMatcher();
   private readonly heroesUtilsService = inject(HeroesUtilsService);
 
+  readonly i18n = I18N;
+  translate = translate;
+
   readonly panelOpenState = signal(false);
 
   /** Configuración de campos de filtro. Agregar un filtro nuevo = agregar una entrada aquí. */
   readonly filterConfig = input<FilterFieldConfig[]>([
     {
       id: 'name',
-      label: 'Nombre a buscar:',
-      placeholder: 'Ingrese el nombre del Héroe',
       type: 'text',
+      label: `${this.i18n.fieldsLabel.heroName}`,
+      placeholder: `${this.i18n.placeholders.name}`,
       maxLength: 20,
     },
     {
       id: 'alias',
-      label: 'Alias a buscar:',
-      placeholder: 'Ingrese el alias del Héroe',
       type: 'text',
+      label: `${this.i18n.fieldsLabel.heroAlias}`,
+      placeholder: `${this.i18n.placeholders.alias}`,
       maxLength: 20,
     },
     {
       id: 'team',
-      label: 'Equipo:',
-      placeholder: 'Ingrese el equipo del Héroe',
+      label: `${this.i18n.fieldsLabel.heroTeam}`,
+      placeholder: `${this.i18n.placeholders.team}`,
       type: 'text',
       maxLength: 20,
     },
     {
       id: 'universe',
-      label: 'Universo:',
-      placeholder: 'Ingrese el universo del Héroe',
       type: 'text',
+      label: `${this.i18n.fieldsLabel.heroUniverse}`,
+      placeholder: `${this.i18n.placeholders.universe}`,
       maxLength: 20,
     },
     {
       id: 'category',
-      label: 'Categoría:',
-      placeholder: 'Seleccione una categoría',
       type: 'radio',
+      label: `${this.i18n.fieldsLabel.heroCategory}`,
+
       options: [
-        { label: 'Todos', value: 'all', default: true },
-        { label: 'Héroe', value: 'hero', default: false },
-        { label: 'Villano', value: 'villain', default: false },
-        { label: 'Anti-héroe', value: 'anti-hero', default: false },
+        { label: this.i18n.heroCategory.all, value: 'all', default: true },
+        { label: this.i18n.heroCategory.hero, value: 'hero', default: false },
+        { label: this.i18n.heroCategory.villain, value: 'villain', default: false },
+        { label: this.i18n.heroCategory.antiHero, value: 'anti-hero', default: false },
       ],
     },
     {
       id: 'status',
-      label: 'Estado:',
-      placeholder: 'Seleccione un estado',
       type: 'select',
+      label: `${this.i18n.fieldsLabel.heroStatus}`,
       options: [
-        { label: 'Activo', value: 'active', default: false },
-        { label: 'Inactivo', value: 'inactive', default: false },
-        { label: 'Fallecido', value: 'deceased', default: false },
+        { label: this.i18n.heroStatus.active, value: 'active', default: false },
+        { label: this.i18n.heroStatus.inactive, value: 'inactive', default: false },
+        { label: this.i18n.heroStatus.deceased, value: 'deceased', default: false },
       ],
     },
   ]);

@@ -10,19 +10,10 @@ import {
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
-import { Hero } from '../../interfaces/heroes.interface';
-import { Mode } from '../../interfaces/shared.interface';
-
-/** Selección de imagen emitida al padre: archivo crudo y nombre del archivo. */
-export interface HeroImageSelection {
-  fileName: string | null;
-  file: File | null;
-}
-
-/** Formatos de imagen permitidos (JPG, JPEG y PNG). */
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
-/** Tamaño máximo de la imagen original: 1 MB. */
-const MAX_IMAGE_SIZE = 1 * 1024 * 1024;
+import { Hero, HeroImageSelection } from '../../interfaces/heroes.interface';
+import { I18N } from '../../shared/i18n/es';
+import { translate } from '../../shared/i18n/translate';
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_SIZE, Mode } from '../../constants/defaultValues';
 
 /** Id único por instancia: el componente puede usarse más de una vez en la misma vista. */
 let nextImageInputId = 0;
@@ -34,6 +25,8 @@ let nextImageInputId = 0;
   templateUrl: './load-image-hero.html',
 })
 export class LoadImageHero {
+  readonly imageTexts = I18N.image;
+
   readonly hero = input<Hero>();
   readonly mode = input<Mode>('create');
 
@@ -59,7 +52,9 @@ export class LoadImageHero {
   /** Texto alternativo del preview: nombra al héroe cuando se conoce. */
   readonly previewAlt = computed(() => {
     const alias = this.hero()?.alias;
-    return alias ? `Vista previa de ${alias}` : 'Vista previa del héroe';
+    return alias
+      ? translate(this.imageTexts.previewHeroImage, { heroAlias: alias })
+      : this.imageTexts.previewImage;
   });
 
   /** Clases de la dropzone: el hover y el cursor solo aplican cuando se puede elegir archivo. */
@@ -97,14 +92,14 @@ export class LoadImageHero {
     // Validación de formato: solo JPG, JPEG y PNG.
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       element.value = '';
-      this.failSelection('Formato no permitido: selecciona un archivo PNG o JPG.');
+      this.failSelection(this.imageTexts.formatNotAllowed);
       return;
     }
 
     // Validación de tamaño: máximo 1 MB.
     if (file.size > MAX_IMAGE_SIZE) {
       element.value = '';
-      this.failSelection('La imagen supera el tamaño máximo de 1 MB.');
+      this.failSelection(this.imageTexts.sizeNotAllowed);
       return;
     }
 

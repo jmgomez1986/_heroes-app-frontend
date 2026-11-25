@@ -11,14 +11,15 @@
         <mat-icon inline aria-hidden="true">groups</mat-icon>
       </span>
       <span>
-        Mostrando <strong class="font-bold text-zinc-900">{{ shown() }}</strong> de
-        <strong class="font-bold text-zinc-900">{{ total() }}</strong> héroes
+        {{ countPillTexts.showing }} <strong class="font-bold text-zinc-900">{{ shown() }}</strong>
+        {{ paginatorTexts.ofLabel }} <strong class="font-bold text-zinc-900">{{ total() }}</strong>
+        {{ commonText.heroes }}
       </span>
     </div>
   }
 
   <div class="flex items-center">
-    <span class="mr-2.5 text-sm font-medium">Elementos por página:</span>
+    <span class="mr-2.5 text-sm font-medium">{{ paginatorTexts.itemsPerPageLabel }}</span>
     <mat-form-field
       appearance="outline"
       subscriptSizing="dynamic"
@@ -27,7 +28,7 @@
     >
       <mat-select
         id="page-size-select"
-        aria-label="Cantidad de héroes por página"
+        [aria-label]="countPillTexts.ariaLabel"
         [value]="pageSize()"
         (selectionChange)="pageSizeChange.emit($event.value)"
       >

@@ -3,15 +3,9 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
-
-/**
- * Segmento del breadcrumb: los anteriores son links navegables y el actual
- * (link null) se muestra como texto plano.
- */
-interface BreadcrumbSegment {
-  label: string;
-  link: string | null;
-}
+import { BreadcrumbSegment } from '../../../interfaces/heroes.interface';
+import { I18N } from '../../i18n/es';
+import { translate } from '../../i18n/translate';
 
 @Component({
   selector: 'app-breadcrumb',
@@ -20,6 +14,7 @@ interface BreadcrumbSegment {
   templateUrl: './breadcrumb.html',
 })
 export class Breadcrumb {
+  readonly i18n = I18N;
   private readonly router = inject(Router);
 
   // Cada NavigationEnd produce un nuevo valor en la señal: el computed de
@@ -55,21 +50,37 @@ export class Breadcrumb {
 
     // Catálogo = Home (decisión del usuario): '/' y '/heroes' son el mismo segmento.
     if (parts.length === 0 || parts[0] === 'heroes') {
-      return [{ label: 'Catálogo', link: null }];
+      return [{ label: I18N.breadcrumb.catalogLabel, link: null }];
     }
 
     const [route, param] = parts;
-    const catalog: BreadcrumbSegment = { label: 'Catálogo', link: '/heroes' };
+    const catalog: BreadcrumbSegment = { label: I18N.breadcrumb.catalogLabel, link: '/heroes' };
 
     switch (route) {
       case 'new-hero':
-        return [catalog, { label: 'Nuevo Héroe', link: null }];
+        return [catalog, { label: I18N.breadcrumb.newHeroLabel, link: null }];
       case 'view-hero':
-        return [catalog, { label: `Consultar: ${this.slugToLabel(param ?? '')}`, link: null }];
+        return [
+          catalog,
+          {
+            label: translate(I18N.breadcrumb.viewHeroLabel, {
+              heroSlug: this.slugToLabel(param ?? ''),
+            }),
+            link: null,
+          },
+        ];
       case 'edit-hero':
-        return [catalog, { label: `Editar: ${this.slugToLabel(param ?? '')}`, link: null }];
+        return [
+          catalog,
+          {
+            label: translate(I18N.breadcrumb.editHeroLabel, {
+              heroSlug: this.slugToLabel(param ?? ''),
+            }),
+            link: null,
+          },
+        ];
       default:
-        return [{ label: 'Catálogo', link: null }];
+        return [{ label: I18N.breadcrumb.catalogLabel, link: null }];
     }
   }
 }
