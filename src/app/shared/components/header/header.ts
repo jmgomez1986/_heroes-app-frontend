@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { I18N } from '../../i18n/es';
 
 @Component({
   selector: 'app-header',
@@ -10,6 +11,7 @@ import { MatIcon } from '@angular/material/icon';
   templateUrl: './header.html',
 })
 export class Header {
+  readonly i18n = I18N;
   // Fuente única del texto de marca del header (S1): la marca del shell
   // vive solo aquí, el footer tiene su propia línea de catálogo.
   protected readonly brandName = 'Heroes App';

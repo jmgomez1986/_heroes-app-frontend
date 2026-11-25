@@ -10,8 +10,8 @@ export interface FiltersQuery {
 export interface FilterFieldConfig {
   id: keyof FiltersQuery;
   label: string;
-  placeholder: string;
   type: 'text' | 'select' | 'radio';
+  placeholder?: string;
   maxLength?: number;
   options?: { label: string; value: string; default: boolean }[];
 }

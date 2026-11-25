@@ -239,8 +239,8 @@ describe('HeroesGrid', () => {
 
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: I18N.heroes.grid.loadErrorTitle,
-        text: I18N.heroes.grid.loadErrorText,
+        title: I18N.messages.loadErrorTitle,
+        text: I18N.messages.loadErrorText,
         icon: 'error',
       }),
     );

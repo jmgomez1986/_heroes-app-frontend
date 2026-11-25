@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-
-/** Imagen de reserva para hero sin imagen o con URL rota (servida desde public/images). */
-const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
-
-type ImageState = 'loading' | 'loaded' | 'error';
+import { I18N } from '../../shared/i18n/es';
+import { translate } from '../../shared/i18n/translate';
+import { ImageState, PLACEHOLDER_IMAGE } from '../../constants/defaultValues';
 
 /**
  * Componente de solo lectura para mostrar la imagen de un hero (secure_url completa de Cloudinary o vacía).
@@ -37,7 +35,11 @@ export class HeroImage {
     computation: () => 'loading',
   });
 
-  altText = computed(() => (this.name() ? `Imagen de ${this.name()}` : 'Imagen no disponible'));
+  altText = computed(() =>
+    this.name()
+      ? translate(I18N.image.heroImage, {heroName: this.name()})
+      : I18N.image.imageNotAvailable,
+  );
 
   /** Placeholder si no hay imagen o si la carga falló. */
   showPlaceholder = computed(() => !this.image() || this.imageState() === 'error');

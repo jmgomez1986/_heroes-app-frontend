@@ -27,6 +27,7 @@ import { Filters } from '../../../components/filters/filters';
 import {
   DEFAULT_ITEMS_PER_PAGE,
   DEFAULT_PAGE,
+  ITEMS_PER_PAGE_OPTIONS,
   MAX_ITEMS_PER_PAGE,
 } from '../../../shared/pagination.constants';
 import { I18N } from '../../../shared/i18n/es';
@@ -48,6 +49,7 @@ import { FiltersQuery } from '../../../interfaces/heroesFilters.interface';
   templateUrl: './heroes-grid.html',
 })
 export class HeroesGrid {
+  readonly i18nTexts = I18N;
   // Services
   readonly heroesService = inject(HeroesService);
   readonly heroesUtilsService = inject(HeroesUtilsService);
@@ -87,8 +89,7 @@ export class HeroesGrid {
       : DEFAULT_ITEMS_PER_PAGE;
   });
 
-  /** Límite del backend expuesto al template para las opciones del paginador. */
-  protected readonly maxItemsPerPage = MAX_ITEMS_PER_PAGE;
+  protected readonly itemsPerPageOptions = ITEMS_PER_PAGE_OPTIONS;
 
   /** Pill "Mostrando X de Y héroes": X = items de la página actual, Y = total del backend.
    * undefined mientras carga o en error (el pill se oculta en esos estados).
@@ -140,8 +141,8 @@ export class HeroesGrid {
       if (!error) return;
       console.error('No se pudo cargar el catálogo de héroes:', error);
       Swal.fire({
-        title: I18N.heroes.grid.loadErrorTitle,
-        text: I18N.heroes.grid.loadErrorText,
+        title: I18N.messages.loadErrorTitle,
+        text: I18N.messages.loadErrorText,
         icon: 'error',
       });
     });

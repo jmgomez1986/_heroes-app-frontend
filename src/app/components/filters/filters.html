@@ -5,7 +5,7 @@
     (closed)="panelOpenState.set(false)"
   >
     <mat-expansion-panel-header>
-      <mat-panel-title> Filtros </mat-panel-title>
+      <mat-panel-title> {{i18n.titles.filters}} </mat-panel-title>
     </mat-expansion-panel-header>
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-6">
       @for (field of filterConfig(); track field.id) {
@@ -25,7 +25,7 @@
                 matInput
                 [id]="'hero-' + field.id"
                 [formControl]="getControl(field.id)"
-                [placeholder]="field.placeholder"
+                [placeholder]="field.placeholder ?? ''"
                 (input)="onTextInput($event, field.id)"
                 [errorStateMatcher]="matcher"
                 class="w-full border-none bg-transparent py-2.5 pl-3 pr-20 text-sm text-zinc-900 placeholder-zinc-500 focus:ring-0"
@@ -43,13 +43,13 @@
                 @if (getControl(field.id).value) {
                   <button
                     type="button"
-                    aria-label="Limpiar búsqueda"
+                    [aria-label]="i18n.ariaLabel.cleanSearch"
                     class="pointer-events-auto flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
                     (click)="getControl(field.id).setValue('')"
                   >
-                    <mat-icon class="h-3.5! w-3.5! translate-y-[-1.5px] text-[16px]! leading-none!"
-                      >close</mat-icon
-                    >
+                    <mat-icon class="h-3.5! w-3.5! translate-y-[-1.5px] text-[16px]! leading-none!">
+                      close
+                    </mat-icon>
                   </button>
                 }
               </div>
@@ -57,7 +57,7 @@
 
             @if (getControl(field.id).hasError('maxlength')) {
               <p class="text-xs font-medium text-red-600">
-                Máximo {{ field.maxLength }} caracteres
+                {{ translate(i18n.maxLengthMessageGeneral, { maxLength: field.maxLength ?? '' }) }}
               </p>
             }
           }
@@ -69,7 +69,7 @@
               <mat-select
                 [id]="'hero-' + field.id"
                 [formControl]="getControl(field.id)"
-                [placeholder]="field.placeholder"
+                [placeholder]="field.placeholder ?? ''"
                 class="min-w-0 flex-1 border-none bg-transparent py-2.5 pl-3 text-sm text-zinc-900 focus:ring-0"
               >
                 @for (opt of field.options ?? []; track opt.value) {
@@ -80,7 +80,7 @@
               @if (getControl(field.id).value) {
                 <button
                   type="button"
-                  aria-label="Limpiar estado"
+                  [aria-label]="i18n.ariaLabel.cleanStatus"
                   class="ml-1.5 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
                   (click)="getControl(field.id).setValue('')"
                 >
@@ -119,7 +119,7 @@
         (click)="applyFilters()"
       >
         <mat-icon class="mr-2">search</mat-icon>
-        Aplicar filtros
+        {{ i18n.buttons.applyFilters }}
       </button>
 
       <button
@@ -128,7 +128,7 @@
         (click)="resetFilters()"
       >
         <mat-icon class="mr-2">delete_outline</mat-icon>
-        Limpiar filtros
+        {{ i18n.buttons.clearFilters }}
       </button>
     </div>
   </mat-expansion-panel>

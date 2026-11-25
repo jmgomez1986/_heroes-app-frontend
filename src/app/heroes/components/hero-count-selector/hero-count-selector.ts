@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { I18N } from '../../../shared/i18n/es';
 
 /**
  * Componente reutilizable de resumen de catálogo: pill "Mostrando X de Y" +
@@ -17,6 +18,9 @@ import { MatSelectModule } from '@angular/material/select';
   templateUrl: './hero-count-selector.html',
 })
 export class HeroCountSelector {
+  readonly paginatorTexts = I18N.paginator;
+  readonly countPillTexts = I18N.countPill;
+  readonly commonText = I18N.common;
   /** Items de la página actual. null mientras carga o en error: el pill se oculta. */
   readonly shown = input<number | null, number | null | undefined>(null, {
     // El binding del padre puede llegar undefined (Angular no siempre lo normaliza):

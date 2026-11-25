@@ -61,7 +61,7 @@ describe('Breadcrumb', () => {
     expect(items[0].tagName).toBe('SPAN');
   });
 
-  it('en /new-hero muestra "Catálogo" como link y "Nuevo Héroe" como segmento actual', async () => {
+  it('en /new-hero muestra "Catálogo" como link y "Registrar Héroe" como segmento actual', async () => {
     await router.navigateByUrl('/new-hero');
     fixture.detectChanges();
 
@@ -70,7 +70,7 @@ describe('Breadcrumb', () => {
     expect(anchors[0].textContent?.trim()).toBe('Catálogo');
 
     const current = breadcrumbItems().at(-1);
-    expect(current?.textContent?.trim()).toBe('Nuevo Héroe');
+    expect(current?.textContent?.trim()).toBe('Registrar Héroe');
     expect(current?.tagName).toBe('SPAN');
   });
 
@@ -83,7 +83,7 @@ describe('Breadcrumb', () => {
     expect(anchors[0].textContent?.trim()).toBe('Catálogo');
 
     const current = breadcrumbItems().at(-1);
-    expect(current?.textContent?.trim()).toBe('Consultar: Super Man');
+    expect(current?.textContent?.trim()).toBe('Visualizar: Super Man');
     expect(current?.tagName).toBe('SPAN');
   });
 

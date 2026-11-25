@@ -8,7 +8,7 @@ import { MatChipInputEvent } from '@angular/material/chips';
 import NewHero from './new-hero';
 import { HeroesService } from '../../../services/heroes';
 import { Hero } from '../../../interfaces/heroes.interface';
-import { Mode } from '../../../interfaces/shared.interface';
+import { Mode } from '../../../constants/defaultValues';
 import { I18N } from '../../../shared/i18n/es';
 
 // Se mockea el módulo de sweetalert2 completo para poder espiar Swal.fire sin tocar el módulo real.
@@ -236,8 +236,8 @@ describe('NewHero', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent;
-      expect(text).toContain('El nombre es obligatorio');
-      expect(text).toContain('El alias es obligatorio');
+      expect(text).toContain('El nombre del héroe es obligatorio');
+      expect(text).toContain('El alias del héroe es obligatorio');
       expect(text).toContain('El universo es obligatorio');
       expect(text).toContain('El equipo del héroe es obligatorio');
       expect(text).toContain('La descripción del Héroe es obligatoria.');
@@ -253,8 +253,8 @@ describe('NewHero', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent;
-      expect(text).toContain('El nombre debe tener un máximo de 20 caracteres.');
-      expect(text).toContain('El alias debe tener un máximo de 20 caracteres.');
+      expect(text).toContain('El nombre del héroe debe tener un máximo de 20 caracteres.');
+      expect(text).toContain('El alias del héroe debe tener un máximo de 20 caracteres.');
       expect(text).toContain('El universo debe tener un máximo de 10 caracteres.');
       expect(text).toContain('El equipo del héroe debe tener un máximo de 20 caracteres.');
       expect(text).toContain('La descripción del Héroe debe tener un máximo de 150 caracteres.');
@@ -396,7 +396,7 @@ describe('NewHero', () => {
       await flushMicrotasks();
 
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.confirmSaveTitle }),
+        expect.objectContaining({ title: I18N.alerts.confirmSaveTitle }),
       );
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
     });
@@ -413,7 +413,7 @@ describe('NewHero', () => {
       await flushMicrotasks();
 
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.saveSuccessTitle }),
+        expect.objectContaining({ title: I18N.alerts.saveSuccessTitle }),
       );
       expect(refreshSpy).toHaveBeenCalledTimes(1);
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
@@ -457,7 +457,7 @@ describe('NewHero', () => {
 
       expect(heroesService.uploadHeroImage).not.toHaveBeenCalled();
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.saveSuccessTitle, icon: 'success' }),
+        expect.objectContaining({ title: I18N.alerts.saveSuccessTitle, icon: 'success' }),
       );
     });
 
@@ -476,7 +476,7 @@ describe('NewHero', () => {
 
       expect(Swal.fire).toHaveBeenCalledWith(
         expect.objectContaining({
-          text: I18N.form.saveImageErrorCreateText,
+          text: I18N.image.saveImageErrorCreateText,
           icon: 'warning',
         }),
       );
@@ -528,7 +528,7 @@ describe('NewHero', () => {
       await flushMicrotasks();
 
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.confirmSaveTitle }),
+        expect.objectContaining({ title: I18N.alerts.confirmSaveTitle }),
       );
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
     });
@@ -545,7 +545,7 @@ describe('NewHero', () => {
       await flushMicrotasks();
 
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.saveSuccessTitle }),
+        expect.objectContaining({ title: I18N.alerts.saveSuccessTitle }),
       );
       expect(refreshSpy).toHaveBeenCalledTimes(1);
       expect(navigateSpy).toHaveBeenCalledWith(['/heroes']);
@@ -601,7 +601,7 @@ describe('NewHero', () => {
 
       expect(heroesService.uploadHeroImage).not.toHaveBeenCalled();
       expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ title: I18N.form.saveSuccessTitle, icon: 'success' }),
+        expect.objectContaining({ title: I18N.alerts.saveSuccessTitle, icon: 'success' }),
       );
     });
 
@@ -621,7 +621,7 @@ describe('NewHero', () => {
 
       expect(Swal.fire).toHaveBeenCalledWith(
         expect.objectContaining({
-          text: I18N.form.saveImageErrorEditText,
+          text: I18N.image.saveImageErrorEditText,
           icon: 'warning',
         }),
       );
@@ -713,7 +713,7 @@ describe('NewHero', () => {
     await flushMicrotasks();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: I18N.form.saveErrorTitle }));
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: I18N.messages.saveErrorTitle }));
   });
 
 });

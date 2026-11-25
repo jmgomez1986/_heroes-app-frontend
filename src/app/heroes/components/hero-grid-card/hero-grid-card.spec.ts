@@ -147,14 +147,14 @@ describe('HeroGridCard', () => {
 
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: I18N.heroes.card.confirmDeleteTitle,
-        text: I18N.heroes.card.confirmDeleteText,
+        title: I18N.alerts.confirmDeleteTitle,
+        text: I18N.alerts.confirmDeleteText,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: I18N.heroes.card.confirmButton,
-        cancelButtonText: I18N.heroes.card.cancelButton,
+        confirmButtonText: I18N.buttons.delete,
+        cancelButtonText: I18N.buttons.cancel,
       }),
     );
 
@@ -176,7 +176,7 @@ describe('HeroGridCard', () => {
     await flushMicrotasks();
 
     expect(Swal.fire).toHaveBeenCalledWith(
-      expect.objectContaining({ title: I18N.heroes.card.deleteSuccessTitle }),
+      expect.objectContaining({ title: I18N.alerts.deleteSuccessTitle }),
     );
     expect(heroDeletedSpy).toHaveBeenCalledTimes(1);
   });
@@ -191,7 +191,7 @@ describe('HeroGridCard', () => {
 
     expect(errorSpy).toHaveBeenCalled();
     expect(Swal.fire).toHaveBeenCalledWith(
-      expect.objectContaining({ title: I18N.heroes.card.deleteErrorTitle }),
+      expect.objectContaining({ title: I18N.alerts.deleteErrorTitle }),
     );
   });
 });

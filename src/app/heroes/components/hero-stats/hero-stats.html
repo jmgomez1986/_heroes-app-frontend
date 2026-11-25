@@ -1,8 +1,8 @@
-<!-- MOBILE (< md): una sola tarjeta compacta con los 4 indicadores -->
+<!-- Design for MOBILE View (< md): una sola tarjeta compacta con los 4 indicadores -->
 <div
   class="mb-6 grid grid-cols-4 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white py-3 shadow-sm md:hidden"
 >
-  @for (stat of stats(); track stat.label; let first = $first; let last = $last) {
+  @for (stat of stats(); track stat.id; let first = $first; let last = $last) {
     <div class="flex min-w-0 flex-col items-center justify-center px-1 text-center">
       <!-- Etiqueta corta: saca "Total de personajes " para que entre en 1 línea -->
       <span
@@ -18,7 +18,7 @@
         }
         <span class="truncate">
           {{
-            stat.label.replace('Total de personajes ', '').replace('Total de personajes', 'Total')
+            stat.titleMobile ?? stat.title
           }}
         </span>
       </span>
@@ -49,7 +49,7 @@
 
 <!-- Design for DESKTOP View (<= md) -> 4cards, una por indicador -->
 <div class="hidden md:grid md:grid-cols-4 gap-4 mb-6">
-  @for (stat of stats(); track stat.label) {
+  @for (stat of stats(); track stat.id) {
     <div class="stat-card rounded-2xl border border-zinc-200 bg-white shadow-sm p-5 flex flex-col">
       <div class="flex items-center gap-2 text-sm font-medium text-zinc-500">
         @if (stat.icon) {
@@ -57,11 +57,11 @@
             <mat-icon inline>{{ stat.icon }}</mat-icon>
           </span>
         }
-        <span>{{ stat.label }}</span>
+        <span>{{ stat.title }}</span>
       </div>
 
-      @if (stat.sub) {
-        <p class="mt-1 text-xs text-zinc-500">{{ stat.sub }}</p>
+      @if (stat.subtitle) {
+        <p class="mt-1 text-xs text-zinc-500">{{ stat.subtitle }}</p>
       }
 
       <p class="mt-2 text-3xl font-bold text-violet-950 leading-tight">{{ stat.value }}</p>

@@ -25,28 +25,22 @@ import { HeroesService } from '../../../services/heroes';
 import {
   EditHeroResponse,
   Hero,
+  HeroeCategory,
+  HeroImageSelection,
   HeroPayload,
   NewHeroResponse,
   UploadImageResponse,
 } from '../../../interfaces/heroes.interface';
 import {
-  HeroImageSelection,
   LoadImageHero,
 } from '../../../components/load-image-hero/load-image-hero';
 import { HeroesUtilsService } from '../../../services/heroes-utils';
 import { TransformTextUppercase } from '../../../directives/transform-text-uppercase';
 import { HeroErrorStateMatcher } from '../../../shared/error-state-matcher';
 import { LoadingOverlay } from '../../../shared/components/loading-overlay/loading-overlay';
-import { Mode } from '../../../interfaces/shared.interface';
 import { I18N } from '../../../shared/i18n/es';
-
-/** Nombres de los campos de texto con límite de caracteres. */
-type TextFieldName = 'name' | 'alias' | 'universe' | 'team' | 'description';
-
-interface HeroeCategory {
-  value: string;
-  viewValue: string;
-}
+import { translate } from '../../../shared/i18n/translate';
+import { MAX_LENGTHS, Mode, TextFieldName } from '../../../constants/defaultValues';
 
 @Component({
   selector: 'app-new-hero',
@@ -67,6 +61,7 @@ interface HeroeCategory {
   templateUrl: './new-hero.html',
 })
 export default class NewHero {
+  readonly i18nTexts = I18N;
   // Signals
   readonly hero = input<Hero>();
   readonly mode = input<Mode>('create');
@@ -78,41 +73,23 @@ export default class NewHero {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Máximos de caracteres por campo de texto (única fuente de verdad para validador y template). */
-  readonly MAX_LENGTHS: Record<TextFieldName, number> = {
-    name: 20,
-    alias: 20,
-    universe: 10,
-    team: 20,
-    description: 150,
-  };
-  /** Etiqueta de cada campo para construir el mensaje de maxlength sin duplicar textos. */
-  private readonly MAX_MESSAGE_LABELS: Record<TextFieldName, string> = {
-    name: 'El nombre debe tener un máximo de',
-    alias: 'El alias debe tener un máximo de',
-    universe: 'El universo debe tener un máximo de',
-    team: 'El equipo del héroe debe tener un máximo de',
-    description: 'La descripción del Héroe debe tener un máximo de',
-  };
-  /** Mensaje de campo requerido (se muestra uno solo por campo, igual que antes). */
-  private readonly REQUIRED_MESSAGES: Record<TextFieldName, string> = {
-    name: 'El nombre es obligatorio',
-    alias: 'El alias es obligatorio',
-    universe: 'El universo es obligatorio',
-    team: 'El equipo del héroe es obligatorio',
-    description: 'La descripción del Héroe es obligatoria.',
-  };
+  // Sin anotación Record<..., string>: el ensanchamiento a string borra los literales y
+  // translate() deja de validar los placeholders. Con los literales, el helper exige
+  // exactamente { maxLength }.
+  private readonly maxLengthText = this.i18nTexts.maxLengthMessage;
+  private readonly requiredMessages = this.i18nTexts.requiredMessages;
 
   readonly matcher = new HeroErrorStateMatcher();
 
   readonly heroCategories: HeroeCategory[] = [
-    { value: 'Hero', viewValue: 'Héroe' },
-    { value: 'Villain', viewValue: 'Villano' },
+    { value: 'Hero', viewValue: this.i18nTexts.heroCategory.hero },
+    { value: 'Villain', viewValue: this.i18nTexts.heroCategory.villain },
+    { value: 'anti-hero', viewValue: this.i18nTexts.heroCategory.antiHero },
   ];
   readonly heroStatus: HeroeCategory[] = [
-    { value: 'Active', viewValue: 'Activo' },
-    { value: 'Inactive', viewValue: 'Inactivo' },
-    { value: 'Deceased', viewValue: 'Fallecido' },
+    { value: 'Active', viewValue: this.i18nTexts.heroStatus.active },
+    { value: 'Inactive', viewValue: this.i18nTexts.heroStatus.inactive },
+    { value: 'Deceased', viewValue: this.i18nTexts.heroStatus.deceased },
   ];
 
   readonly reactivePowersWords = signal<string[]>([]);
@@ -139,13 +116,13 @@ export default class NewHero {
 
   private buildHeroForm() {
     return this.fb.nonNullable.group({
-      name: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.name)]],
-      alias: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.alias)]],
+      name: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.name)]],
+      alias: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.alias)]],
       status: ['Active'],
       category: ['Hero', [Validators.required, Validators.maxLength(10)]],
-      universe: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.universe)]],
-      team: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.team)]],
-      description: ['', [Validators.required, Validators.maxLength(this.MAX_LENGTHS.description)]],
+      universe: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.universe)]],
+      team: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.team)]],
+      description: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.description)]],
       powers: this.fb.nonNullable.control<string[]>([]),
       image: ['', [Validators.required]],
     });
@@ -169,10 +146,12 @@ export default class NewHero {
   fieldErrorMessage(controlName: TextFieldName): string | null {
     const control = this.heroForm.controls[controlName];
     if (control.hasError('required')) {
-      return this.REQUIRED_MESSAGES[controlName];
+      return this.requiredMessages[controlName];
     }
     if (control.hasError('maxlength')) {
-      return `${this.MAX_MESSAGE_LABELS[controlName]} ${this.MAX_LENGTHS[controlName]} caracteres.`;
+      return translate(this.maxLengthText[controlName], {
+        maxLength: MAX_LENGTHS[controlName],
+      });
     }
     return null;
   }
@@ -180,9 +159,13 @@ export default class NewHero {
   /**
    * El aviso de límite se muestra SOLO al alcanzar exactamente el máximo (comportamiento
    * documentado y pineado por tests): ni por debajo ni al superarlo.
-   */
-  showLimitHint(controlName: TextFieldName): boolean {
-    return this.heroForm.controls[controlName].value.length === this.MAX_LENGTHS[controlName];
+   */  showLimitHint(controlName: TextFieldName): boolean {
+    return this.heroForm.controls[controlName].value.length === MAX_LENGTHS[controlName];
+  }
+
+  /** aria-label del botón que remueve un poder del chip. */
+  removePowerLabel(power: string): string {
+    return translate(this.i18nTexts.ariaLabel.removePower, { power });
   }
 
   removeReactivePowers(newPower: string): void {
@@ -219,17 +202,17 @@ export default class NewHero {
   onSubmit(): void {
     if (this.heroForm.valid) {
       Swal.fire({
-        title: I18N.form.confirmSaveTitle,
+        title: I18N.alerts.confirmSaveTitle,
         text:
           this.mode() === 'create'
-            ? I18N.form.confirmSaveCreateText
-            : I18N.form.confirmSaveEditText,
+            ? I18N.alerts.confirmSaveCreateText
+            : I18N.alerts.confirmSaveEditText,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: `${this.mode() === 'create' ? I18N.form.confirmCreate : I18N.form.confirmEdit}`,
-        cancelButtonText: I18N.form.cancel,
+        confirmButtonText: `${this.mode() === 'create' ? I18N.buttons.create : I18N.buttons.edit}`,
+        cancelButtonText: I18N.buttons.cancel,
       }).then((result) => {
         if (result.isConfirmed) {
           this.isSaving.set(true);
@@ -250,20 +233,20 @@ export default class NewHero {
                 // El héroe ya quedó creado/editado: solo falló la imagen, que se puede
                 // reintentar desde Editar. Igual se vuelve al listado.
                 Swal.fire({
-                  title: I18N.form.saveErrorTitle,
+                  title: I18N.messages.saveErrorTitle,
                   text:
                     this.mode() === 'create'
-                      ? I18N.form.saveImageErrorCreateText
-                      : I18N.form.saveImageErrorEditText,
+                      ? I18N.image.saveImageErrorCreateText
+                      : I18N.image.saveImageErrorEditText,
                   icon: 'warning',
                 });
               } else {
                 Swal.fire({
-                  title: I18N.form.saveSuccessTitle,
+                  title: I18N.alerts.saveSuccessTitle,
                   text:
                     this.mode() === 'create'
-                      ? I18N.form.saveSuccessCreateText
-                      : I18N.form.saveSuccessEditText,
+                      ? I18N.alerts.saveSuccessCreateText
+                      : I18N.alerts.saveSuccessEditText,
                   icon: 'success',
                 });
               }
@@ -277,11 +260,11 @@ export default class NewHero {
                 err,
               );
               Swal.fire({
-                title: I18N.form.saveErrorTitle,
+                title: I18N.messages.saveErrorTitle,
                 text:
                   this.mode() === 'create'
-                    ? I18N.form.saveErrorCreateText
-                    : I18N.form.saveErrorEditText,
+                    ? I18N.messages.saveErrorCreateText
+                    : I18N.messages.saveErrorEditText,
                 icon: 'error',
               });
             },
@@ -383,7 +366,7 @@ export default class NewHero {
     this.heroesUtilsService.enforceMaxLength(
       event,
       this.heroForm.controls[controlName],
-      this.MAX_LENGTHS[controlName],
+      MAX_LENGTHS[controlName],
     );
   }
 

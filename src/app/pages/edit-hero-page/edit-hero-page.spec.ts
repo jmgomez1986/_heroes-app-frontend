@@ -5,7 +5,7 @@ import { of, throwError } from 'rxjs';
 import EditHeroPage from './edit-hero-page';
 import { HeroesService } from '../../services/heroes';
 import { Hero } from '../../interfaces/heroes.interface';
-import { Mode } from '../../interfaces/shared.interface';
+import { Mode } from '../../constants/defaultValues';
 
 // Héroe de prueba reutilizable.
 const mockHero: Hero = {
@@ -59,11 +59,11 @@ describe('EditHeroPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show "Ver Héroe" heading when mode is "view"', async () => {
+  it('should show "Visualizar Héroe" heading when mode is "view"', async () => {
     setMode('view');
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Ver Héroe');
+    expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Visualizar Héroe');
   });
 
   it('should show "Editar Héroe" heading when mode is "edit"', async () => {

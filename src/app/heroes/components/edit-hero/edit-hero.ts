@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import NewHero from '../new-hero/new-hero';
 import { Hero } from '../../../interfaces/heroes.interface';
-import { Mode } from '../../../interfaces/shared.interface';
+import { Mode } from '../../../constants/defaultValues';
 
 @Component({
   selector: 'app-edit-hero',

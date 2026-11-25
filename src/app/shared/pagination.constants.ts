@@ -4,3 +4,4 @@
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_ITEMS_PER_PAGE = 10;
 export const MAX_ITEMS_PER_PAGE = 50;
+export const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, MAX_ITEMS_PER_PAGE];

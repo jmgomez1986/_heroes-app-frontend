@@ -9,13 +9,13 @@
     >
       <!-- Name Field -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Nombre</mat-label>
+        <mat-label>{{i18nTexts.fieldsLabel.heroName}}</mat-label>
         <input
           matInput
           appTransformTextUppercase
           id="heroName"
           formControlName="name"
-          placeholder="Ingrese el nombre del Héroe"
+          [placeholder]="i18nTexts.placeholders.name"
           (input)="onTextInput($event, 'name')"
           [errorStateMatcher]="matcher"
         />
@@ -23,18 +23,20 @@
         @if (fieldErrorMessage('name'); as error) {
           <mat-error>{{ error }}</mat-error>
         } @else if (showLimitHint('name')) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">
+            {{ i18nTexts.hintMessage.limitReached }}
+          </mat-hint>
         }
       </mat-form-field>
 
       <!-- Alias Field -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Alias</mat-label>
+        <mat-label>{{i18nTexts.fieldsLabel.heroAlias}}</mat-label>
         <input
           matInput
           id="heroAlias"
           formControlName="alias"
-          placeholder="Ingrese el alias del Héroe"
+          [placeholder]="i18nTexts.placeholders.alias"
           (input)="onTextInput($event, 'alias')"
           [errorStateMatcher]="matcher"
         />
@@ -42,14 +44,16 @@
         @if (fieldErrorMessage('alias'); as error) {
           <mat-error>{{ error }}</mat-error>
         } @else if (showLimitHint('alias')) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">
+            {{ i18nTexts.hintMessage.limitReached }}
+          </mat-hint>
         }
       </mat-form-field>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Status Field -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Estado</mat-label>
+          <mat-label>{{i18nTexts.fieldsLabel.heroStatus}}</mat-label>
           <mat-select formControlName="status">
             @for (status of heroStatus; track status.value) {
               <mat-option [value]="status.value">{{ status.viewValue }}</mat-option>
@@ -59,7 +63,7 @@
 
         <!-- Category Field -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Categoría</mat-label>
+          <mat-label>{{i18nTexts.fieldsLabel.heroCategory}}</mat-label>
           <mat-select formControlName="category">
             @for (category of heroCategories; track category.value) {
               <mat-option [value]="category.value">{{ category.viewValue }}</mat-option>
@@ -69,12 +73,12 @@
 
         <!-- Universe Field -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Universo</mat-label>
+          <mat-label>{{i18nTexts.fieldsLabel.heroUniverse}}</mat-label>
           <input
             matInput
             id="heroUniverse"
             formControlName="universe"
-            placeholder="Ingrese el universo del Héroe (Ejemplo: DC, Marvel)"
+            [placeholder]="i18nTexts.placeholders.universe"
             (input)="onTextInput($event, 'universe')"
             [errorStateMatcher]="matcher"
           />
@@ -82,19 +86,21 @@
           @if (fieldErrorMessage('universe'); as error) {
             <mat-error>{{ error }}</mat-error>
           } @else if (showLimitHint('universe')) {
-            <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+            <mat-hint align="end" class="text-amber-600!">
+              {{ i18nTexts.hintMessage.limitReached }}
+            </mat-hint>
           }
         </mat-form-field>
       </div>
 
       <!-- Team Field -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Equipo</mat-label>
+        <mat-label>{{i18nTexts.fieldsLabel.heroTeam}}</mat-label>
         <input
           matInput
           id="heroTeam"
           formControlName="team"
-          placeholder="Ingrese el equipo al que pertenece el Héroe"
+          [placeholder]="i18nTexts.placeholders.team"
           (input)="onTextInput($event, 'team')"
           [errorStateMatcher]="matcher"
         />
@@ -102,17 +108,19 @@
         @if (fieldErrorMessage('team'); as error) {
           <mat-error>{{ error }}</mat-error>
         } @else if (showLimitHint('team')) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">
+            {{ i18nTexts.hintMessage.limitReached }}
+          </mat-hint>
         }
       </mat-form-field>
 
       <!-- Description Field -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Descripción</mat-label>
+        <mat-label>{{i18nTexts.fieldsLabel.heroDescription}}</mat-label>
         <textarea
           matInput
           formControlName="description"
-          placeholder="Escribe una breve descripción del Héroe..."
+          [placeholder]="i18nTexts.placeholders.description"
           rows="3"
           (input)="onTextInput($event, 'description')"
         >
@@ -121,7 +129,9 @@
         @if (fieldErrorMessage('description'); as error) {
           <mat-error>{{ error }}</mat-error>
         } @else if (showLimitHint('description')) {
-          <mat-hint align="end" class="text-amber-600!">Límite de caracteres alcanzado</mat-hint>
+          <mat-hint align="end" class="text-amber-600!">{{
+            i18nTexts.hintMessage.limitReached
+          }}</mat-hint>
         }
       </mat-form-field>
 
@@ -130,18 +140,19 @@
         <label
           [attr.for]="isView() ? null : 'heroPowers'"
           class="mb-1 block text-base font-medium text-zinc-600"
-          >Poderes</label
         >
+          {{i18nTexts.fieldsLabel.heroPowers}}
+        </label>
         <mat-form-field appearance="outline" class="w-full">
           <mat-chip-grid
             #reactiveChipGrid
-            aria-label="Ingrese los poderes del Héroe"
+            [aria-label]="i18nTexts.placeholders.powers"
             formControlName="powers"
           >
             @for (power of reactivePowersWords(); track $index) {
               <mat-chip-row (removed)="removeReactivePowers(power)">
                 {{ power }}
-                <button matChipRemove [attr.aria-label]="'Remover el poder ' + power">
+                <button matChipRemove [attr.aria-label]="removePowerLabel(power)">
                   <mat-icon aria-hidden="true">cancel</mat-icon>
                 </button>
               </mat-chip-row>
@@ -150,7 +161,7 @@
           @if (!isView()) {
             <input
               id="heroPowers"
-              placeholder="Nuevo poder..."
+              [placeholder]="i18nTexts.placeholders.powers"
               [matChipInputFor]="reactiveChipGrid"
               (matChipInputTokenEnd)="addReactivePowers($event)"
             />
@@ -177,12 +188,19 @@
 <app-loading-overlay [show]="isSaving()"></app-loading-overlay>
 
 <!-- Botones fuera de la card pero asociados al form por `form="hero-form"`: el submit
-     (click o Enter) sigue disparando (ngSubmit) sin envolver la card con el form. --> 
+     (click o Enter) sigue disparando (ngSubmit) sin envolver la card con el form. -->
 <div class="flex justify-end gap-6">
   @if (!isView()) {
-    <button matButton="filled" type="submit" form="hero-form" [disabled]="heroForm.invalid || isSaving()">
-      Guardar
+    <button
+      matButton="filled"
+      type="submit"
+      form="hero-form"
+      [disabled]="heroForm.invalid || isSaving()"
+    >
+      {{ i18nTexts.buttons.save }}
     </button>
   }
-  <button matButton="outlined" type="button" (click)="cancelSubmit()" [disabled]="isSaving()">Cancelar</button>
+  <button matButton="outlined" type="button" (click)="cancelSubmit()" [disabled]="isSaving()">
+    {{ i18nTexts.buttons.cancel }}
+  </button>
 </div>
