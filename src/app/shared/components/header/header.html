@@ -20,15 +20,6 @@
       >
         {{i18n.links.catalog}}
       </a>
-      <!-- En mobile el link de texto queda oculto: el CTA cubre la misma navegación (S1). -->
-      <a
-        routerLink="/new-hero"
-        routerLinkActive="font-semibold text-indigo-600"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="hidden rounded-md px-2 py-1 text-sm text-zinc-600 transition-colors hover:text-indigo-600 lg:block"
-      >
-        {{i18n.links.newHero}}
-      </a>
       <button
         matButton="filled"
         routerLink="/new-hero"

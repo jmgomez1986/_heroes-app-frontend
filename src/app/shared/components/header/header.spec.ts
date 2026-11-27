@@ -48,14 +48,23 @@ describe('Header', () => {
     expect(brand?.textContent?.trim()).toBe('Heroes App');
   });
 
-  it('debería renderizar los links de navegación y el CTA "Agregar un nuevo héroe" hacia /new-hero', () => {
+  it('debería renderizar una sola entrada a /new-hero (el CTA) y el link a Catálogo', () => {
     fixture.detectChanges();
-    const links: HTMLAnchorElement[] = Array.from(
+    const anchors: HTMLAnchorElement[] = Array.from(
       fixture.nativeElement.querySelectorAll('nav a'),
     );
-    const labels = links.map((a) => a.textContent?.trim());
+    const labels = anchors.map((a) => a.textContent?.trim());
     expect(labels).toContain('Catálogo');
-    expect(labels).toContain('Nuevo Héroe');
+
+    // Una sola entrada al formulario: el CTA. Sin link de texto duplicado.
+    expect(anchors.filter((a) => a.getAttribute('routerlink') === '/new-hero').length).toBe(0);
+    const triggers = fixture.nativeElement.querySelectorAll('nav [routerlink="/new-hero"]');
+    expect(triggers.length).toBe(1);
+    expect(triggers[0].tagName).toBe('BUTTON');
+  });
+
+  it('debería renderizar el CTA "Agregar un nuevo héroe" hacia /new-hero', () => {
+    fixture.detectChanges();
 
     const cta = fixture.nativeElement.querySelector('button');
     expect(cta?.textContent).toContain('Agregar un nuevo héroe');
@@ -73,14 +82,6 @@ describe('Header', () => {
     fixture.detectChanges();
     const activeLink = fixture.nativeElement.querySelector('a.text-indigo-600');
     expect(activeLink?.textContent?.trim()).toBe('Catálogo');
-  });
-
-  it('debería marcar como activo el link "Nuevo Héroe" cuando la ruta es /new-hero', async () => {
-    fixture.detectChanges();
-    await router.navigateByUrl('/new-hero');
-    fixture.detectChanges();
-    const activeLink = fixture.nativeElement.querySelector('a.text-indigo-600');
-    expect(activeLink?.textContent?.trim()).toBe('Nuevo Héroe');
   });
 
   it('debería usar la receta neutra: sticky, superficie blanca y borde zinc-200', () => {
