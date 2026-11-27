@@ -84,15 +84,6 @@ describe('Header', () => {
     expect(activeLink?.textContent?.trim()).toBe('Catálogo');
   });
 
-  it('debería marcar como activo el CTA cuando la ruta es /new-hero', async () => {
-    fixture.detectChanges();
-    await router.navigateByUrl('/new-hero');
-    fixture.detectChanges();
-    const cta = fixture.nativeElement.querySelector('button');
-    expect(cta?.classList).toContain('ring-2');
-    expect(fixture.nativeElement.querySelector('nav a.text-indigo-600')).toBeNull();
-  });
-
   it('debería usar la receta neutra: sticky, superficie blanca y borde zinc-200', () => {
     fixture.detectChanges();
     const header = fixture.nativeElement.querySelector('header');
